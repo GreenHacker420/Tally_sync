@@ -37,15 +37,13 @@ class TestDataHelper {
       displayName: 'Test Company',
       gstin: '29ABCDE1234F1Z5',
       pan: 'ABCDE1234F',
-      addresses: [{
-        type: 'both',
+      address: {
         line1: '123 Test Street',
         city: 'Test City',
         state: 'Test State',
         pincode: '123456',
-        country: 'India',
-        isDefault: true
-      }],
+        country: 'India'
+      },
       contact: {
         phone: '+919876543210',
         email: 'info@testcompany.com'

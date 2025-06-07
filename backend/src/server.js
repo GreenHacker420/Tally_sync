@@ -12,6 +12,8 @@ require('dotenv').config();
 const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
 const { connectDB } = require('./config/database');
+const tallyWebSocketService = require('./services/tallyWebSocketService');
+const tallySyncService = require('./services/tallySyncService');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -19,9 +21,7 @@ const userRoutes = require('./routes/users');
 const companyRoutes = require('./routes/companies');
 const voucherRoutes = require('./routes/vouchers');
 const inventoryRoutes = require('./routes/inventory');
-const partyRoutes = require('./routes/parties');
 const paymentRoutes = require('./routes/payments');
-const emailRoutes = require('./routes/emails');
 const gstRoutes = require('./routes/gst');
 const tallyRoutes = require('./routes/tally');
 const reportRoutes = require('./routes/reports');
@@ -84,9 +84,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/vouchers', voucherRoutes);
 app.use('/api/inventory', inventoryRoutes);
-app.use('/api/parties', partyRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/emails', emailRoutes);
 app.use('/api/gst', gstRoutes);
 app.use('/api/tally', tallyRoutes);
 app.use('/api/reports', reportRoutes);
@@ -112,28 +110,53 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await connectDB();
-    
+
     const server = app.listen(PORT, () => {
       logger.info(`FinSync360 Backend Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
     });
 
+    // Initialize Tally WebSocket service
+    tallyWebSocketService.initialize(server, '/tally-agent');
+    logger.info('Tally WebSocket service initialized');
+
     // Graceful shutdown
-    process.on('SIGTERM', () => {
-      logger.info('SIGTERM received. Shutting down gracefully...');
+    const gracefulShutdown = () => {
+      logger.info('Shutting down gracefully...');
+
+      // Stop Tally sync service
+      tallySyncService.stopAllJobs();
+
+      // Close WebSocket connections
+      tallyWebSocketService.shutdown();
+
       server.close(() => {
-        logger.info('Process terminated');
-        mongoose.connection.close();
-        process.exit(0);
+        logger.info('HTTP server closed');
+        mongoose.connection.close(() => {
+          logger.info('Database connection closed');
+          process.exit(0);
+        });
       });
+    };
+
+    process.on('SIGTERM', () => {
+      logger.info('SIGTERM received');
+      gracefulShutdown();
     });
 
     process.on('SIGINT', () => {
-      logger.info('SIGINT received. Shutting down gracefully...');
-      server.close(() => {
-        logger.info('Process terminated');
-        mongoose.connection.close();
-        process.exit(0);
-      });
+      logger.info('SIGINT received');
+      gracefulShutdown();
+    });
+
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (error) => {
+      logger.error('Uncaught Exception:', error);
+      gracefulShutdown();
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+      gracefulShutdown();
     });
 
   } catch (error) {

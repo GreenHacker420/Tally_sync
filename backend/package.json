@@ -40,6 +40,7 @@
     "mongoose": "^8.0.3",
     "mongoose-paginate-v2": "^1.9.1",
     "multer": "^1.4.5-lts.1",
+    "net": "^1.0.2",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.7",
     "pdf-lib": "^1.17.1",
@@ -47,11 +48,14 @@
     "qrcode": "^1.5.3",
     "razorpay": "^2.9.2",
     "sharp": "^0.33.1",
+    "socket.io": "^4.7.4",
     "speakeasy": "^2.0.0",
     "twilio": "^4.19.0",
     "uuid": "^9.0.1",
     "winston": "^3.11.0",
+    "ws": "^8.14.2",
     "xml2js": "^0.6.2",
+    "xmlbuilder2": "^3.1.1",
     "xss": "^1.0.14"
   },
   "devDependencies": {
@@ -76,6 +80,6 @@
     "express",
     "mongodb"
   ],
-  "author": "FinSync360 Team",
+  "author": "GreenHacker",
   "license": "MIT"
 }
