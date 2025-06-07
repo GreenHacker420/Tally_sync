@@ -1,0 +1,53 @@
+{
+  "name": "finsync360",
+  "version": "1.0.0",
+  "description": "Comprehensive cloud-based ERP system with Tally integration",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "backend:dev": "cd backend && npm run dev",
+    "frontend:dev": "cd frontend && npm start",
+    "mobile:dev": "cd mobile && npm start",
+    "desktop:dev": "cd desktop && npm run electron:dev",
+    "desktop-agent:dev": "cd desktop-agent && npm run electron:dev",
+    "ml-service:dev": "cd ml-service && python -m uvicorn main:app --reload",
+    "build": "npm run backend:build && npm run frontend:build",
+    "backend:build": "cd backend && npm run build",
+    "frontend:build": "cd frontend && npm run build",
+    "test": "npm run backend:test && npm run frontend:test",
+    "backend:test": "cd backend && npm test",
+    "frontend:test": "cd frontend && npm test",
+    "install:all": "npm install && npm run install:backend && npm run install:frontend && npm run install:mobile && npm run install:desktop && npm run install:desktop-agent",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "install:mobile": "cd mobile && npm install",
+    "install:desktop": "cd desktop && npm install",
+    "install:desktop-agent": "cd desktop-agent && npm install",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "keywords": [
+    "erp",
+    "tally",
+    "accounting",
+    "inventory",
+    "gst",
+    "payments",
+    "business-intelligence"
+  ],
+  "author": "FinSync360 Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "mobile",
+    "desktop",
+    "desktop-agent",
+    "shared"
+  ]
+}
