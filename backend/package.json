@@ -10,6 +10,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:comprehensive": "node tests/runAllTests.js",
+    "test:benchmark": "node tests/performanceBenchmark.js",
+    "test:docs": "node tests/generateApiDocs.js",
+    "test:seed": "node tests/seedTestData.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "seed": "node src/scripts/seedDatabase.js"
