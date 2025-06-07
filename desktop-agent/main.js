@@ -4,7 +4,6 @@ const electronLog = require('electron-log');
 const Store = require('electron-store');
 const path = require('path');
 const isDev = require('electron-is-dev');
-const isDev = require('electron-is-dev');
 
 // Import services
 const TallyService = require('./src/services/TallyService');
