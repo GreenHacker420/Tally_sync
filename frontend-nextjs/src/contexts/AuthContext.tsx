@@ -97,8 +97,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check if user is logged in on app start
   useEffect(() => {
     const checkAuth = async () => {
-      const token = authService.isAuthenticated() ? localStorage.getItem('token') : null;
-      
+      // Only run on client side
+      if (typeof window === 'undefined') return;
+
+      const token = authService.getAuthToken();
+
       if (token) {
         try {
           const response = await authService.getCurrentUser();
@@ -127,14 +130,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       dispatch({ type: 'AUTH_START' });
       const response = await authService.login(credentials);
-      
+
       const { token, user } = response.data;
-      
+
       dispatch({
         type: 'AUTH_SUCCESS',
         payload: { user, token },
       });
-      
+
       authService.storeUser(user);
       toast.success('Login successful!');
     } catch (error: any) {
@@ -149,9 +152,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       dispatch({ type: 'AUTH_START' });
       const response = await authService.register(userData);
-      
+
       const { token, user } = response.data;
-      
+
       dispatch({
         type: 'AUTH_SUCCESS',
         payload: { user, token },

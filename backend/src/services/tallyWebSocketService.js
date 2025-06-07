@@ -388,6 +388,17 @@ class TallyWebSocketService {
   }
 
   /**
+   * Handle WebSocket server error
+   * @param {Error} error - Server error
+   */
+  handleServerError(error) {
+    this.logger.error('WebSocket server error', {
+      error: error.message,
+      stack: error.stack
+    });
+  }
+
+  /**
    * Send message to agent
    * @param {string} agentId - Agent ID
    * @param {Object} message - Message to send

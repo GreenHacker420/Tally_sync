@@ -17,7 +17,11 @@
     "test:seed": "node tests/seedTestData.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "seed": "node src/scripts/seedDatabase.js"
+    "seed": "node src/scripts/seedDatabase.js",
+    "demo:user": "node scripts/create-demo-user.js",
+    "demo:users": "node scripts/create-demo-users.js",
+    "demo:data": "node scripts/create-demo-data.js",
+    "demo:all": "npm run demo:users && npm run demo:data"
   },
   "dependencies": {
     "axios": "^1.6.2",

@@ -4,8 +4,9 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import ClientOnly from '@/components/common/ClientOnly';
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
@@ -28,4 +29,16 @@ export default function Home() {
   }
 
   return null;
+}
+
+export default function Home() {
+  return (
+    <ClientOnly fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <HomeContent />
+    </ClientOnly>
+  );
 }

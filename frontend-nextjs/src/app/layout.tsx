@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -14,8 +14,12 @@ export const metadata: Metadata = {
   title: "FinSync360 - Comprehensive ERP Solution",
   description: "Complete business management solution with Tally integration",
   keywords: "ERP, Tally, Business Management, Accounting, Inventory",
-  authors: [{ name: "FinSync360 Team" }],
-  viewport: "width=device-width, initial-scale=1",
+  authors: [{ name: "GreenHacker" }],
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

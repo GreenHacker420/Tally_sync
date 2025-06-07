@@ -1,4 +1,4 @@
-import api, { setAuthToken, removeAuthToken } from '@/lib/api';
+import api, { setAuthToken, removeAuthToken, getAuthToken } from '@/lib/api';
 import { 
   User, 
   LoginCredentials, 
@@ -153,7 +153,7 @@ export const authService = {
   // Check if user is authenticated
   isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem('token');
+    return !!this.getAuthToken();
   },
 
   // Get stored user data (for SSR)
@@ -179,6 +179,21 @@ export const authService = {
   clearStoredUser(): void {
     if (typeof window === 'undefined') return;
     localStorage.removeItem('user');
+  },
+
+  // Remove auth token (delegated to API module)
+  removeAuthToken(): void {
+    removeAuthToken();
+  },
+
+  // Set auth token (delegated to API module)
+  setAuthToken(token: string): void {
+    setAuthToken(token);
+  },
+
+  // Get auth token (delegated to API module)
+  getAuthToken(): string | null {
+    return getAuthToken();
   }
 };
 
