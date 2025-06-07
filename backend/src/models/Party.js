@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const PartySchema = new mongoose.Schema({
   company: {
@@ -291,5 +292,8 @@ PartySchema.statics.findWithOutstanding = function(companyId) {
     isActive: true
   });
 };
+
+// Add pagination plugin
+PartySchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Party', PartySchema);
