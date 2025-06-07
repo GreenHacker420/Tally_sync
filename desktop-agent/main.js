@@ -4,6 +4,7 @@ const electronLog = require('electron-log');
 const Store = require('electron-store');
 const path = require('path');
 const isDev = require('electron-is-dev');
+const isDev = require('electron-is-dev');
 
 // Import services
 const TallyService = require('./src/services/TallyService');
@@ -99,10 +100,10 @@ class DesktopAgent {
     });
 
     // Load the app
-    const startUrl = isDev 
-      ? 'http://localhost:3001' 
-      : `file://${path.join(__dirname, '../renderer/index.html')}`;
-    
+    const startUrl = isDev
+      ? 'http://localhost:3001'
+      : `file://${path.join(__dirname, 'renderer/dist/index.html')}`;
+
     await this.mainWindow.loadURL(startUrl);
 
     // Show window when ready
