@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Surface,
-  Title,
+  Text,
   Button,
   useTheme,
 } from 'react-native-paper';
@@ -46,9 +46,12 @@ const QuickActions: React.FC<QuickActionsProps> = ({ onActionPress }) => {
 
   return (
     <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]} elevation={2}>
-      <Title style={[styles.title, { color: theme.colors.onSurface }]}>
+      <Text
+        variant="titleMedium"
+        style={[styles.title, { color: theme.colors.onSurface }]}
+      >
         Quick Actions
-      </Title>
+      </Text>
       
       <ScrollView
         horizontal

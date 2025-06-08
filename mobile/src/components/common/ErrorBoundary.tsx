@@ -1,8 +1,7 @@
 import React, { Component, ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import {
-  Title,
-  Paragraph,
+  Text,
   Button,
   Surface,
 } from 'react-native-paper';
@@ -64,22 +63,26 @@ class ErrorBoundary extends Component<Props, State> {
               style={styles.icon}
             />
             
-            <Title style={styles.title}>Something went wrong</Title>
-            
-            <Paragraph style={styles.message}>
+            <Text variant="headlineSmall" style={styles.title}>
+              Something went wrong
+            </Text>
+
+            <Text variant="bodyLarge" style={styles.message}>
               An unexpected error occurred. Please try restarting the app.
-            </Paragraph>
+            </Text>
 
             {__DEV__ && this.state.error && (
               <View style={styles.debugContainer}>
-                <Paragraph style={styles.debugTitle}>Debug Info:</Paragraph>
-                <Paragraph style={styles.debugText}>
+                <Text variant="labelMedium" style={styles.debugTitle}>
+                  Debug Info:
+                </Text>
+                <Text variant="bodySmall" style={styles.debugText}>
                   {this.state.error.toString()}
-                </Paragraph>
+                </Text>
                 {this.state.errorInfo && (
-                  <Paragraph style={styles.debugText}>
+                  <Text variant="bodySmall" style={styles.debugText}>
                     {this.state.errorInfo.componentStack}
-                  </Paragraph>
+                  </Text>
                 )}
               </View>
             )}

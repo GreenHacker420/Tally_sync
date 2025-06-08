@@ -1,5 +1,5 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import EncryptedStorage from 'react-native-encrypted-storage';
 
@@ -12,6 +12,7 @@ import settingsReducer from './slices/settingsSlice';
 import voucherReducer from './slices/voucherSlice';
 import inventoryReducer from './slices/inventorySlice';
 import networkReducer from './slices/networkSlice';
+import mlReducer from './slices/mlSlice';
 
 // Persist configuration
 const persistConfig = {
@@ -21,15 +22,14 @@ const persistConfig = {
 };
 
 // Secure persist configuration for sensitive data
-const securePersistConfig = {
-  key: 'secure',
+const authPersistConfig = {
+  key: 'auth',
   storage: EncryptedStorage,
-  whitelist: ['auth'],
 };
 
 // Root reducer
 const rootReducer = combineReducers({
-  auth: persistReducer(securePersistConfig, authReducer),
+  auth: persistReducer(authPersistConfig, authReducer),
   company: companyReducer,
   sync: syncReducer,
   offline: offlineReducer,
@@ -37,6 +37,7 @@ const rootReducer = combineReducers({
   voucher: voucherReducer,
   inventory: inventoryReducer,
   network: networkReducer,
+  ml: mlReducer,
 });
 
 // Persisted reducer
@@ -48,8 +49,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
-        ignoredPaths: ['register'],
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }),
   devTools: __DEV__,
@@ -59,5 +59,6 @@ export const store = configureStore({
 export const persistor = persistStore(store);
 
 // Types
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof rootReducer>;
+export type PersistedRootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

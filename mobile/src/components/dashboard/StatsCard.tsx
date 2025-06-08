@@ -2,8 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   Surface,
-  Title,
-  Paragraph,
+  Text,
   useTheme,
 } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -50,16 +49,25 @@ const StatsCard: React.FC<StatsCardProps> = ({
       </View>
 
       <View style={styles.content}>
-        <Title style={[styles.value, { color: theme.colors.onSurface }]}>
+        <Text
+          variant="headlineSmall"
+          style={[styles.value, { color: theme.colors.onSurface }]}
+        >
           {formatValue(value)}
-        </Title>
-        <Paragraph style={[styles.title, { color: theme.colors.onSurfaceVariant }]}>
+        </Text>
+        <Text
+          variant="bodyMedium"
+          style={[styles.title, { color: theme.colors.onSurfaceVariant }]}
+        >
           {title}
-        </Paragraph>
+        </Text>
         {subtitle && (
-          <Paragraph style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
+          <Text
+            variant="bodySmall"
+            style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}
+          >
             {subtitle}
-          </Paragraph>
+          </Text>
         )}
       </View>
     </Surface>

@@ -12,8 +12,8 @@ import ReportsScreen from '../screens/ReportsScreen';
 import SyncScreen from '../screens/SyncScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-
-// Detail Screens
+import MLAnalyticsScreen from '../screens/MLAnalyticsScreen';
+import PaymentPredictionScreen from '../screens/PaymentPredictionScreen';
 import VoucherDetailScreen from '../screens/VoucherDetailScreen';
 import CreateVoucherScreen from '../screens/CreateVoucherScreen';
 import ItemDetailScreen from '../screens/ItemDetailScreen';
@@ -51,6 +51,9 @@ const TabNavigator: React.FC = () => {
               break;
             case 'Sync':
               iconName = focused ? 'sync' : 'sync-off';
+              break;
+            case 'MLAnalytics':
+              iconName = focused ? 'robot' : 'robot-outline';
               break;
             default:
               iconName = 'help-circle';
@@ -94,10 +97,15 @@ const TabNavigator: React.FC = () => {
         component={ReportsScreen}
         options={{ tabBarLabel: 'Reports' }}
       />
-      <Tab.Screen 
-        name="Sync" 
+      <Tab.Screen
+        name="Sync"
         component={SyncScreen}
         options={{ tabBarLabel: 'Sync' }}
+      />
+      <Tab.Screen
+        name="MLAnalytics"
+        component={MLAnalyticsScreen}
+        options={{ tabBarLabel: 'AI Insights' }}
       />
     </Tab.Navigator>
   );
@@ -126,6 +134,10 @@ const MainNavigator: React.FC = () => {
       <Stack.Screen name="CreateVoucher" component={CreateVoucherScreen} />
       <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
       <Stack.Screen name="CreateItem" component={CreateItemScreen} />
+
+      {/* ML Screens */}
+      <Stack.Screen name="PaymentPrediction" component={PaymentPredictionScreen} />
+      {/* TODO: Add RiskAssessmentScreen and InventoryForecastScreen */}
     </Stack.Navigator>
   );
 };

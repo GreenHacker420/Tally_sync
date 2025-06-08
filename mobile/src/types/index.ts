@@ -210,3 +210,104 @@ export interface AppError {
   details?: any;
   timestamp: string;
 }
+
+// Redux State Types
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  token: string | null;
+  refreshToken: string | null;
+  error: string | null;
+}
+
+export interface SettingsState {
+  theme: 'light' | 'dark' | 'system';
+  autoSync: boolean;
+  syncInterval: number;
+  biometricEnabled: boolean;
+  notificationsEnabled: boolean;
+  offlineMode: boolean;
+  debugMode: boolean;
+  isFirstLaunch: boolean;
+}
+
+export interface SyncState {
+  isOnline: boolean;
+  isSyncing: boolean;
+  lastSyncTime: string | null;
+  pendingChanges: number;
+  currentSession: SyncSession | null;
+  sessions: SyncSession[];
+  progress: SyncProgress | null;
+  error: string | null;
+}
+
+export interface InventoryState {
+  items: InventoryItem[];
+  isLoading: boolean;
+  error: string | null;
+  filters: {
+    category: string;
+    search: string;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  };
+}
+
+export interface MLState {
+  isMLServiceAvailable: boolean;
+  businessMetrics: BusinessMetrics | null;
+  predictions: MLPrediction[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface CompanyState {
+  companies: Company[];
+  selectedCompany: Company | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface VoucherState {
+  vouchers: Voucher[];
+  isLoading: boolean;
+  error: string | null;
+  filters: {
+    type: string;
+    dateFrom: string;
+    dateTo: string;
+    search: string;
+  };
+}
+
+export interface OfflineState {
+  queuedActions: any[];
+  pendingUploads: any[];
+  lastSyncAttempt: string | null;
+  conflictResolution: 'server' | 'local' | 'manual';
+}
+
+// ML Types
+export interface MLPrediction {
+  id: string;
+  type: 'payment' | 'risk' | 'forecast';
+  input: any;
+  output: any;
+  confidence: number;
+  timestamp: string;
+}
+
+export interface BusinessMetrics {
+  revenue: number;
+  expenses: number;
+  profit: number;
+  cashFlow: number;
+  period: string;
+  trends: {
+    revenue: number;
+    expenses: number;
+    profit: number;
+  };
+}

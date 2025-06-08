@@ -10,8 +10,7 @@ import {
 import {
   TextInput,
   Button,
-  Title,
-  Paragraph,
+  Text,
   Checkbox,
   Surface,
   useTheme,
@@ -124,10 +123,12 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             size={80}
             color={theme.colors.primary}
           />
-          <Title style={styles.title}>Welcome Back</Title>
-          <Paragraph style={styles.subtitle}>
+          <Text variant="headlineMedium" style={styles.title}>
+            Welcome Back
+          </Text>
+          <Text variant="bodyLarge" style={styles.subtitle}>
             Sign in to your FinSync360 account
-          </Paragraph>
+          </Text>
         </View>
 
         <Surface style={styles.formContainer} elevation={2}>
@@ -258,9 +259,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         </Surface>
 
         <View style={styles.footer}>
-          <Paragraph style={styles.footerText}>
+          <Text variant="bodyMedium" style={styles.footerText}>
             Don't have an account?{' '}
-          </Paragraph>
+          </Text>
           <Button
             mode="text"
             onPress={handleRegister}

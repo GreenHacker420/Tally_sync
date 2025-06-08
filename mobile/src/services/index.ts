@@ -2,6 +2,7 @@ import { databaseService } from './databaseService';
 import { webSocketService } from './webSocketService';
 import { syncService } from './syncService';
 import { authService } from './authService';
+import { mlService } from './mlService';
 
 /**
  * Initialize all services
@@ -55,6 +56,7 @@ export {
   webSocketService,
   syncService,
   authService,
+  mlService,
 };
 
 // Export API client

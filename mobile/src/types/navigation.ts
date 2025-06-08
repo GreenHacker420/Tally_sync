@@ -23,6 +23,10 @@ export type MainStackParamList = {
   CreateVoucher: { type?: string };
   ItemDetail: { itemId: string };
   CreateItem: undefined;
+  MLAnalytics: undefined;
+  PaymentPrediction: undefined;
+  RiskAssessment: undefined;
+  InventoryForecast: undefined;
 };
 
 export type MainTabParamList = {
@@ -31,6 +35,7 @@ export type MainTabParamList = {
   Inventory: undefined;
   Reports: undefined;
   Sync: undefined;
+  MLAnalytics: undefined;
 };
 
 // Screen Props Types

@@ -2,8 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import {
   ActivityIndicator,
-  Title,
-  Paragraph,
+  Text,
   useTheme,
 } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -28,9 +27,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
             size={80}
             color={theme.colors.primary}
           />
-          <Title style={[styles.appName, { color: theme.colors.primary }]}>
+          <Text
+            variant="headlineMedium"
+            style={[styles.appName, { color: theme.colors.primary }]}
+          >
             FinSync360
-          </Title>
+          </Text>
         </View>
       )}
       
@@ -40,9 +42,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
           color={theme.colors.primary}
           style={styles.spinner}
         />
-        <Paragraph style={[styles.message, { color: theme.colors.onSurfaceVariant }]}>
+        <Text
+          variant="bodyLarge"
+          style={[styles.message, { color: theme.colors.onSurfaceVariant }]}
+        >
           {message}
-        </Paragraph>
+        </Text>
       </View>
     </View>
   );

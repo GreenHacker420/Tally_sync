@@ -8,15 +8,14 @@ import {
 } from 'react-native';
 import {
   Card,
-  Title,
-  Paragraph,
+  Text as PaperText,
   Button,
   Chip,
   Surface,
   useTheme,
   IconButton,
 } from 'react-native-paper';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Components
@@ -27,14 +26,16 @@ import RecentActivity from '../components/dashboard/RecentActivity';
 import SyncStatusCard from '../components/dashboard/SyncStatusCard';
 
 // Store
-import { RootState, AppDispatch } from '../store';
+import { AppDispatch } from '../store';
+import { useAuth, useSync, useML } from '../store/hooks';
 import { getSyncStatus } from '../store/slices/syncSlice';
+import { checkMLServiceHealth, fetchBusinessMetrics } from '../store/slices/mlSlice';
 
 // Services
 import { apiClient } from '../services';
 
 // Types
-import { MainTabScreenProps } from '../types/navigation';
+import { MainTabScreenProps, MainStackScreenProps } from '../types/navigation';
 
 const { width } = Dimensions.get('window');
 
@@ -48,13 +49,14 @@ interface DashboardStats {
 type Props = MainTabScreenProps<'Dashboard'>;
 
 const DashboardScreen: React.FC<Props> = ({ navigation }) => {
+  // Get parent navigator to access stack screens
+  const parentNavigation = navigation.getParent();
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
   
-  const { user } = useSelector((state: RootState) => state.auth);
-  const { isOnline, isSyncing, lastSyncTime, pendingChanges } = useSelector(
-    (state: RootState) => state.sync
-  );
+  const { user } = useAuth();
+  const { isOnline, isSyncing, lastSyncTime, pendingChanges } = useSync();
+  const { isMLServiceAvailable, businessMetrics } = useML();
   
   const [stats, setStats] = useState<DashboardStats>({
     totalVouchers: 0,
@@ -103,10 +105,10 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const handleQuickAction = (action: string) => {
     switch (action) {
       case 'create_voucher':
-        navigation.navigate('CreateVoucher');
+        parentNavigation?.navigate('CreateVoucher');
         break;
       case 'create_item':
-        navigation.navigate('CreateItem');
+        parentNavigation?.navigate('CreateItem');
         break;
       case 'sync':
         navigation.navigate('Sync');
@@ -125,8 +127,8 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
         title="Dashboard"
         subtitle={`Welcome back, ${user?.name}`}
         showSync
-        onSettingsPress={() => navigation.navigate('Settings')}
-        onProfilePress={() => navigation.navigate('Profile')}
+        onSettingsPress={() => parentNavigation?.navigate('Settings')}
+        onProfilePress={() => parentNavigation?.navigate('Profile')}
       />
 
       <ScrollView
@@ -145,9 +147,9 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                 size={20}
                 color={isOnline ? theme.colors.primary : theme.colors.error}
               />
-              <Paragraph style={styles.statusText}>
+              <PaperText variant="bodyMedium" style={styles.statusText}>
                 {isOnline ? 'Online' : 'Offline'}
-              </Paragraph>
+              </PaperText>
             </View>
             
             <View style={styles.statusItem}>
@@ -156,9 +158,9 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                 size={20}
                 color={isSyncing ? theme.colors.primary : theme.colors.onSurfaceVariant}
               />
-              <Paragraph style={styles.statusText}>
+              <PaperText variant="bodyMedium" style={styles.statusText}>
                 {isSyncing ? 'Syncing...' : 'Idle'}
-              </Paragraph>
+              </PaperText>
             </View>
 
             {pendingChanges > 0 && (

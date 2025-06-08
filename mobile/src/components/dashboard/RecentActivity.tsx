@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import {
   Surface,
-  Title,
-  Paragraph,
+  Text,
   List,
   Chip,
   useTheme,
@@ -137,9 +136,12 @@ const RecentActivity: React.FC = () => {
       )}
       right={() => (
         <View style={styles.rightContainer}>
-          <Paragraph style={[styles.timestamp, { color: theme.colors.onSurfaceVariant }]}>
+          <Text
+            variant="bodySmall"
+            style={[styles.timestamp, { color: theme.colors.onSurfaceVariant }]}
+          >
             {formatTimestamp(item.timestamp)}
-          </Paragraph>
+          </Text>
           {item.status && item.status !== 'success' && (
             <Chip
               mode="outlined"
@@ -159,22 +161,31 @@ const RecentActivity: React.FC = () => {
   if (loading) {
     return (
       <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]} elevation={2}>
-        <Title style={[styles.title, { color: theme.colors.onSurface }]}>
+        <Text
+          variant="titleMedium"
+          style={[styles.title, { color: theme.colors.onSurface }]}
+        >
           Recent Activity
-        </Title>
-        <Paragraph style={[styles.loadingText, { color: theme.colors.onSurfaceVariant }]}>
+        </Text>
+        <Text
+          variant="bodyMedium"
+          style={[styles.loadingText, { color: theme.colors.onSurfaceVariant }]}
+        >
           Loading...
-        </Paragraph>
+        </Text>
       </Surface>
     );
   }
 
   return (
     <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]} elevation={2}>
-      <Title style={[styles.title, { color: theme.colors.onSurface }]}>
+      <Text
+        variant="titleMedium"
+        style={[styles.title, { color: theme.colors.onSurface }]}
+      >
         Recent Activity
-      </Title>
-      
+      </Text>
+
       {activities.length > 0 ? (
         <FlatList
           data={activities}
@@ -184,9 +195,12 @@ const RecentActivity: React.FC = () => {
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       ) : (
-        <Paragraph style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
+        <Text
+          variant="bodyMedium"
+          style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}
+        >
           No recent activity
-        </Paragraph>
+        </Text>
       )}
     </Surface>
   );

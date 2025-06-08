@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -8,76 +8,122 @@ import {
 } from 'react-native';
 import {
   Surface,
-  Title,
-  Paragraph,
+  Text,
   Button,
   ProgressBar,
   List,
   Chip,
   Switch,
   useTheme,
+  Divider,
 } from 'react-native-paper';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Components
 import Header from '../components/common/Header';
 
 // Store
-import { RootState, AppDispatch } from '../store';
+import { AppDispatch } from '../store';
+import { useAuth, useSync } from '../store/hooks';
 import {
   startSync,
-  stopSync,
+  pauseSync,
+  resumeSync,
   forceSync,
-  getSyncStatus,
-  setAutoSyncEnabled,
-  setSyncInterval,
+  clearSyncError,
+  updateSyncSettings,
 } from '../store/slices/syncSlice';
 
 // Types
 import { MainTabScreenProps } from '../types/navigation';
 
+interface SyncStatus {
+  lastSync: string | null;
+  totalItems: number;
+  syncedItems: number;
+  pendingItems: number;
+  failedItems: number;
+  isAutoSyncEnabled: boolean;
+  syncInterval: number;
+}
+
 type Props = MainTabScreenProps<'Sync'>;
 
 const SyncScreen: React.FC<Props> = ({ navigation }) => {
+  const parentNavigation = navigation.getParent();
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
-  
+
+  const { user } = useAuth();
   const {
     isOnline,
     isSyncing,
-    lastSyncTime,
     syncProgress,
-    syncHistory,
+    lastSyncTime,
+    error: syncError,
     pendingChanges,
-    autoSyncEnabled,
-    syncInterval,
-    error,
-  } = useSelector((state: RootState) => state.sync);
+    syncHistory
+  } = useSync();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
+    lastSync: null,
+    totalItems: 0,
+    syncedItems: 0,
+    pendingItems: 0,
+    failedItems: 0,
+    isAutoSyncEnabled: true,
+    syncInterval: 300, // 5 minutes
+  });
 
   useEffect(() => {
-    dispatch(getSyncStatus());
-  }, [dispatch]);
+    loadSyncStatus();
+  }, []);
 
-  const handleStartSync = async () => {
+  useEffect(() => {
+    if (syncError) {
+      Alert.alert('Sync Error', syncError);
+      dispatch(clearSyncError());
+    }
+  }, [syncError, dispatch]);
+
+  const loadSyncStatus = useCallback(async () => {
+    try {
+      setSyncStatus(prev => ({
+        ...prev,
+        lastSync: lastSyncTime,
+        pendingItems: pendingChanges,
+      }));
+    } catch (error) {
+      console.error('Failed to load sync status:', error);
+    }
+  }, [lastSyncTime, pendingChanges]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadSyncStatus();
+    setRefreshing(false);
+  }, [loadSyncStatus]);
+
+  const handleStartSync = useCallback(async () => {
     try {
       await dispatch(startSync()).unwrap();
-    } catch (error: any) {
-      Alert.alert('Sync Failed', error || 'Failed to start synchronization');
+      Alert.alert('Success', 'Sync completed successfully');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to sync data');
     }
-  };
+  }, [dispatch]);
 
-  const handleStopSync = async () => {
-    try {
-      await dispatch(stopSync()).unwrap();
-    } catch (error: any) {
-      Alert.alert('Error', error || 'Failed to stop synchronization');
-    }
-  };
+  const handlePauseSync = useCallback(() => {
+    dispatch(pauseSync());
+  }, [dispatch]);
 
-  const handleForceSync = async () => {
+  const handleResumeSync = useCallback(() => {
+    dispatch(resumeSync());
+  }, [dispatch]);
+
+  const handleForceSync = useCallback(async () => {
     Alert.alert(
       'Force Sync',
       'This will override any pending changes and sync all data from the server. Continue?',
@@ -89,20 +135,24 @@ const SyncScreen: React.FC<Props> = ({ navigation }) => {
           onPress: async () => {
             try {
               await dispatch(forceSync()).unwrap();
-            } catch (error: any) {
-              Alert.alert('Force Sync Failed', error || 'Failed to force synchronization');
+              Alert.alert('Success', 'Force sync completed');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to force sync');
             }
           },
         },
       ]
     );
-  };
+  }, [dispatch]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await dispatch(getSyncStatus());
-    setRefreshing(false);
-  };
+  const handleToggleAutoSync = useCallback(async (enabled: boolean) => {
+    try {
+      await dispatch(updateSyncSettings({ autoSync: enabled })).unwrap();
+      setSyncStatus(prev => ({ ...prev, isAutoSyncEnabled: enabled }));
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update sync settings');
+    }
+  }, [dispatch]);
 
   const formatLastSync = (timestamp: string | null): string => {
     if (!timestamp) return 'Never';
@@ -138,8 +188,9 @@ const SyncScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       <Header
         title="Sync"
-        subtitle="Data Synchronization"
-        onSettingsPress={() => navigation.navigate('Settings')}
+        subtitle="Data synchronization"
+        showSync
+        onSettingsPress={() => parentNavigation?.navigate('Settings')}
       />
 
       <ScrollView
@@ -150,56 +201,40 @@ const SyncScreen: React.FC<Props> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* Sync Status */}
-        <Surface style={styles.card} elevation={2}>
+        <Surface style={[styles.statusCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
           <View style={styles.statusHeader}>
             <View style={styles.statusInfo}>
-              <Title style={styles.statusTitle}>Sync Status</Title>
+              <Text variant="titleLarge" style={[styles.statusTitle, { color: theme.colors.onSurface }]}>
+                Sync Status
+              </Text>
               <View style={styles.statusRow}>
-                <Icon
-                  name={isSyncing ? 'sync' : isOnline ? 'cloud-check' : 'cloud-off'}
-                  size={16}
-                  color={getSyncStatusColor()}
-                />
-                <Paragraph style={[styles.statusText, { color: getSyncStatusColor() }]}>
+                <Chip
+                  mode="outlined"
+                  style={[styles.statusChip, { borderColor: getSyncStatusColor() }]}
+                  textStyle={[styles.statusChipText, { color: getSyncStatusColor() }]}
+                  icon={isOnline ? 'cloud-check' : 'cloud-off'}
+                >
                   {getSyncStatusText()}
-                </Paragraph>
+                </Chip>
+                <Text variant="bodyMedium" style={[styles.lastSync, { color: theme.colors.onSurfaceVariant }]}>
+                  Last sync: {formatLastSync(syncStatus.lastSync)}
+                </Text>
               </View>
             </View>
-            
-            <View style={styles.statusActions}>
-              {!isSyncing ? (
-                <Button
-                  mode="contained"
-                  onPress={handleStartSync}
-                  disabled={!isOnline}
-                  icon="sync"
-                >
-                  Sync Now
-                </Button>
-              ) : (
-                <Button
-                  mode="outlined"
-                  onPress={handleStopSync}
-                  icon="stop"
-                >
-                  Stop
-                </Button>
-              )}
-            </View>
+            <Icon
+              name={isOnline ? 'cloud-check' : 'cloud-off'}
+              size={32}
+              color={getSyncStatusColor()}
+            />
           </View>
 
-          {syncProgress && (
+          {isSyncing && (
             <View style={styles.progressContainer}>
-              <View style={styles.progressHeader}>
-                <Paragraph style={styles.progressText}>
-                  {syncProgress.message}
-                </Paragraph>
-                <Paragraph style={styles.progressPercent}>
-                  {Math.round(syncProgress.percentage)}%
-                </Paragraph>
-              </View>
+              <Text variant="bodyMedium" style={[styles.progressText, { color: theme.colors.onSurface }]}>
+                Syncing... {Math.round(syncProgress * 100)}%
+              </Text>
               <ProgressBar
-                progress={syncProgress.percentage / 100}
+                progress={syncProgress}
                 color={theme.colors.primary}
                 style={styles.progressBar}
               />
@@ -208,112 +243,148 @@ const SyncScreen: React.FC<Props> = ({ navigation }) => {
 
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
-              <Paragraph style={styles.infoLabel}>Last Sync</Paragraph>
-              <Paragraph style={styles.infoValue}>
+              <Text variant="bodySmall" style={[styles.infoLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Last Sync
+              </Text>
+              <Text variant="bodyMedium" style={[styles.infoValue, { color: theme.colors.onSurface }]}>
                 {formatLastSync(lastSyncTime)}
-              </Paragraph>
+              </Text>
             </View>
-            
+
             <View style={styles.infoItem}>
-              <Paragraph style={styles.infoLabel}>Pending Changes</Paragraph>
+              <Text variant="bodySmall" style={[styles.infoLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Pending Changes
+              </Text>
               <Chip mode="outlined" compact>
                 {pendingChanges}
               </Chip>
             </View>
-            
+
             <View style={styles.infoItem}>
-              <Paragraph style={styles.infoLabel}>Connection</Paragraph>
+              <Text variant="bodySmall" style={[styles.infoLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Connection
+              </Text>
               <View style={styles.connectionStatus}>
                 <Icon
                   name={isOnline ? 'wifi' : 'wifi-off'}
                   size={14}
                   color={isOnline ? theme.colors.primary : theme.colors.error}
                 />
-                <Paragraph style={[
+                <Text variant="bodyMedium" style={[
                   styles.connectionText,
                   { color: isOnline ? theme.colors.primary : theme.colors.error }
                 ]}>
                   {isOnline ? 'Online' : 'Offline'}
-                </Paragraph>
+                </Text>
               </View>
             </View>
           </View>
         </Surface>
 
+        {/* Sync Actions */}
+        <Surface style={[styles.actionsCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
+          <Text variant="titleMedium" style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
+            Sync Actions
+          </Text>
+
+          <View style={styles.actionButtons}>
+            {!isSyncing ? (
+              <Button
+                mode="contained"
+                onPress={handleStartSync}
+                icon="sync"
+                style={styles.actionButton}
+                disabled={!isOnline}
+              >
+                Start Sync
+              </Button>
+            ) : (
+              <Button
+                mode="outlined"
+                onPress={handlePauseSync}
+                icon="pause"
+                style={styles.actionButton}
+              >
+                Pause Sync
+              </Button>
+            )}
+
+            <Button
+              mode="outlined"
+              onPress={handleForceSync}
+              icon="sync-alert"
+              style={styles.actionButton}
+              disabled={!isOnline}
+            >
+              Force Sync
+            </Button>
+          </View>
+        </Surface>
+
         {/* Sync Settings */}
-        <Surface style={styles.card} elevation={2}>
-          <Title style={styles.cardTitle}>Sync Settings</Title>
-          
+        <Surface style={[styles.settingsCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
+          <Text variant="titleMedium" style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
+            Sync Settings
+          </Text>
+
           <List.Item
             title="Auto Sync"
-            description="Automatically sync when online"
-            left={(props) => <List.Icon {...props} icon="sync" />}
+            description="Automatically sync data when online"
+            left={() => <Icon name="sync" size={24} color={theme.colors.primary} />}
             right={() => (
               <Switch
-                value={autoSyncEnabled}
-                onValueChange={(value) => dispatch(setAutoSyncEnabled(value))}
+                value={syncStatus.isAutoSyncEnabled}
+                onValueChange={handleToggleAutoSync}
               />
             )}
           />
-          
+
+          <Divider />
+
           <List.Item
             title="Sync Interval"
-            description={`Every ${syncInterval} minutes`}
-            left={(props) => <List.Icon {...props} icon="clock" />}
-            onPress={() => {
-              // TODO: Show interval picker
-            }}
+            description={`Every ${syncStatus.syncInterval / 60} minutes`}
+            left={() => <Icon name="timer" size={24} color={theme.colors.primary} />}
+            right={() => <Icon name="chevron-right" size={24} color={theme.colors.onSurfaceVariant} />}
+            onPress={() => Alert.alert('Coming Soon', 'Sync interval settings')}
+          />
+
+          <Divider />
+
+          <List.Item
+            title="Sync on WiFi Only"
+            description="Use WiFi only for large syncs"
+            left={() => <Icon name="wifi" size={24} color={theme.colors.primary} />}
+            right={() => <Icon name="chevron-right" size={24} color={theme.colors.onSurfaceVariant} />}
+            onPress={() => Alert.alert('Coming Soon', 'WiFi sync settings')}
           />
         </Surface>
 
-        {/* Advanced Actions */}
-        <Surface style={styles.card} elevation={2}>
-          <Title style={styles.cardTitle}>Advanced</Title>
-          
-          <Button
-            mode="outlined"
-            onPress={handleForceSync}
-            disabled={isSyncing || !isOnline}
-            icon="download"
-            style={styles.advancedButton}
-          >
-            Force Sync from Server
-          </Button>
-          
-          <Button
-            mode="outlined"
-            onPress={() => {
-              // TODO: Clear local data
-            }}
-            disabled={isSyncing}
-            icon="delete"
-            style={styles.advancedButton}
-          >
-            Clear Local Data
-          </Button>
-        </Surface>
-
         {/* Sync History */}
-        <Surface style={styles.card} elevation={2}>
-          <Title style={styles.cardTitle}>Recent Sync History</Title>
-          
-          {syncHistory.length > 0 ? (
+        <Surface style={[styles.historyCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
+          <Text variant="titleMedium" style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
+            Recent Sync History
+          </Text>
+
+          {syncHistory && syncHistory.length > 0 ? (
             syncHistory.slice(0, 5).map((session) => (
               <List.Item
                 key={session.id}
                 title={`Sync ${session.status}`}
                 description={`${session.processedItems}/${session.totalItems} items • ${new Date(session.startTime).toLocaleString()}`}
-                left={(props) => (
-                  <List.Icon
-                    {...props}
-                    icon={session.status === 'completed' ? 'check-circle' : 'alert-circle'}
+                left={() => (
+                  <Icon
+                    name={session.status === 'completed' ? 'check-circle' : 'alert-circle'}
+                    size={24}
                     color={session.status === 'completed' ? theme.colors.primary : theme.colors.error}
                   />
                 )}
               />
             ))
           ) : (
-            <Paragraph style={styles.emptyText}>No sync history available</Paragraph>
+            <Text variant="bodyMedium" style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
+              No sync history available
+            </Text>
           )}
         </Surface>
 
@@ -326,63 +397,47 @@ const SyncScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
   },
   content: {
     flex: 1,
     padding: 16,
   },
-  card: {
-    padding: 16,
+  statusCard: {
+    padding: 20,
     borderRadius: 12,
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
     marginBottom: 16,
   },
   statusHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
   },
   statusInfo: {
     flex: 1,
   },
   statusTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 12,
   },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '500',
+  statusChip: {
+    height: 28,
   },
-  statusActions: {
-    marginLeft: 16,
+  statusChipText: {
+    fontSize: 12,
+  },
+  lastSync: {
+    fontSize: 12,
   },
   progressContainer: {
-    marginBottom: 16,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    marginTop: 16,
   },
   progressText: {
-    fontSize: 14,
-  },
-  progressPercent: {
-    fontSize: 14,
-    fontWeight: '500',
+    marginBottom: 8,
   },
   progressBar: {
     height: 6,
@@ -393,6 +448,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexWrap: 'wrap',
     gap: 16,
+    marginTop: 16,
   },
   infoItem: {
     flex: 1,
@@ -401,7 +457,6 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 12,
     marginBottom: 4,
-    opacity: 0.7,
   },
   infoValue: {
     fontSize: 14,
@@ -416,14 +471,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  advancedButton: {
-    marginBottom: 8,
+  actionsCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+  },
+  settingsCard: {
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  historyCard: {
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
   },
   emptyText: {
     textAlign: 'center',
     padding: 20,
     fontStyle: 'italic',
-    opacity: 0.7,
   },
   bottomSpacing: {
     height: 20,

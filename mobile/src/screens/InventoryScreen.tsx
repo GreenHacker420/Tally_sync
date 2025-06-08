@@ -27,45 +27,45 @@ import Header from '../components/common/Header';
 
 // Store
 import { AppDispatch } from '../store';
-import { useAuth, useVoucher, useSync } from '../store/hooks';
-import { fetchVouchers, deleteVoucher, setFilters, clearError } from '../store/slices/voucherSlice';
+import { useAuth, useInventory, useSync } from '../store/hooks';
+import { fetchInventoryItems, deleteItem, clearError } from '../store/slices/inventorySlice';
 
 // Types
 import { MainTabScreenProps } from '../types/navigation';
-import { Voucher } from '../types';
+import { InventoryItem } from '../types';
 
-interface VoucherFilters {
-  type: string;
+interface InventoryFilters {
+  category: string;
   status: string;
-  dateRange: string;
+  stockLevel: string;
   search: string;
 }
 
-type Props = MainTabScreenProps<'Vouchers'>;
+type Props = MainTabScreenProps<'Inventory'>;
 
-const VouchersScreen: React.FC<Props> = ({ navigation }) => {
+const InventoryScreen: React.FC<Props> = ({ navigation }) => {
   const parentNavigation = navigation.getParent();
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
 
   const { user } = useAuth();
-  const { vouchers, isLoading, error } = useVoucher();
+  const { items, isLoading, error } = useInventory();
   const { isOnline } = useSync();
 
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [selectedVoucher, setSelectedVoucher] = useState<string | null>(null);
-  const [filters, setFilters] = useState<VoucherFilters>({
-    type: 'all',
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [filters, setFilters] = useState<InventoryFilters>({
+    category: 'all',
     status: 'all',
-    dateRange: 'all',
+    stockLevel: 'all',
     search: '',
   });
 
   useEffect(() => {
-    loadVouchers();
+    loadItems();
   }, [dispatch, filters]);
 
   useEffect(() => {
@@ -75,38 +75,38 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, [error, dispatch]);
 
-  const loadVouchers = useCallback(async () => {
+  const loadItems = useCallback(async () => {
     try {
-      await dispatch(fetchVouchers({
+      await dispatch(fetchInventoryItems({
         search: filters.search,
-        type: filters.type !== 'all' ? filters.type : undefined,
+        category: filters.category !== 'all' ? filters.category : undefined,
         status: filters.status !== 'all' ? filters.status : undefined,
-        dateRange: filters.dateRange !== 'all' ? filters.dateRange : undefined,
+        stockLevel: filters.stockLevel !== 'all' ? filters.stockLevel : undefined,
       })).unwrap();
     } catch (error) {
-      console.error('Failed to load vouchers:', error);
+      console.error('Failed to load items:', error);
     }
   }, [dispatch, filters]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadVouchers();
+    await loadItems();
     setRefreshing(false);
-  }, [loadVouchers]);
+  }, [loadItems]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setFilters(prev => ({ ...prev, search: query }));
   }, []);
 
-  const handleVoucherPress = useCallback((voucherId: string) => {
-    parentNavigation?.navigate('VoucherDetail', { voucherId });
+  const handleItemPress = useCallback((itemId: string) => {
+    parentNavigation?.navigate('ItemDetail', { itemId });
   }, [parentNavigation]);
 
-  const handleDeleteVoucher = useCallback(async (voucherId: string) => {
+  const handleDeleteItem = useCallback(async (itemId: string) => {
     Alert.alert(
-      'Delete Voucher',
-      'Are you sure you want to delete this voucher? This action cannot be undone.',
+      'Delete Item',
+      'Are you sure you want to delete this item? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -114,10 +114,10 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await dispatch(deleteVoucher(voucherId)).unwrap();
-              Alert.alert('Success', 'Voucher deleted successfully');
+              await dispatch(deleteItem(itemId)).unwrap();
+              Alert.alert('Success', 'Item deleted successfully');
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete voucher');
+              Alert.alert('Error', 'Failed to delete item');
             }
           },
         },
@@ -125,28 +125,19 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
     );
   }, [dispatch]);
 
-  const getVoucherTypeIcon = (type: string): string => {
-    switch (type.toLowerCase()) {
-      case 'sales': return 'cash-register';
-      case 'purchase': return 'cart';
-      case 'payment': return 'credit-card';
-      case 'receipt': return 'receipt';
-      case 'journal': return 'book-open';
-      default: return 'file-document';
-    }
+  const getStockStatusIcon = (stockLevel: number, minStock: number): string => {
+    if (stockLevel <= 0) return 'alert-circle';
+    if (stockLevel <= minStock) return 'alert';
+    return 'check-circle';
   };
 
-  const getVoucherStatusColor = (status: string): string => {
-    switch (status.toLowerCase()) {
-      case 'approved': return theme.colors.primary;
-      case 'pending': return theme.colors.tertiary;
-      case 'rejected': return theme.colors.error;
-      case 'draft': return theme.colors.outline;
-      default: return theme.colors.onSurfaceVariant;
-    }
+  const getStockStatusColor = (stockLevel: number, minStock: number): string => {
+    if (stockLevel <= 0) return theme.colors.error;
+    if (stockLevel <= minStock) return theme.colors.tertiary;
+    return theme.colors.primary;
   };
 
-  const formatAmount = (amount: number): string => {
+  const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -154,24 +145,15 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const renderVoucherItem = ({ item }: { item: Voucher }) => (
-    <Surface style={[styles.voucherCard, { backgroundColor: theme.colors.surface }]} elevation={1}>
+  const renderInventoryItem = ({ item }: { item: InventoryItem }) => (
+    <Surface style={[styles.itemCard, { backgroundColor: theme.colors.surface }]} elevation={1}>
       <List.Item
-        title={`${item.voucherNumber} - ${item.voucherType}`}
-        description={`${item.narration || 'No description'} • ${formatDate(item.date)}`}
+        title={item.name}
+        description={`${item.category} • ${item.unit}`}
         left={() => (
           <View style={styles.iconContainer}>
             <Icon
-              name={getVoucherTypeIcon(item.voucherType)}
+              name="package-variant"
               size={24}
               color={theme.colors.primary}
             />
@@ -179,32 +161,49 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
         )}
         right={() => (
           <View style={styles.rightContainer}>
-            <Text
-              variant="titleMedium"
-              style={[styles.amount, { color: theme.colors.onSurface }]}
-            >
-              {formatAmount(item.amount)}
-            </Text>
-            <Chip
-              mode="outlined"
-              compact
-              style={[styles.statusChip, { borderColor: getVoucherStatusColor(item.status) }]}
-              textStyle={[styles.statusChipText, { color: getVoucherStatusColor(item.status) }]}
-            >
-              {item.status}
-            </Chip>
+            <View style={styles.stockInfo}>
+              <Text
+                variant="titleMedium"
+                style={[styles.stockLevel, { color: getStockStatusColor(item.currentStock, item.reorderLevel) }]}
+              >
+                {item.currentStock} {item.unit}
+              </Text>
+              <Text
+                variant="bodySmall"
+                style={[styles.price, { color: theme.colors.onSurfaceVariant }]}
+              >
+                {formatCurrency(item.rate)}
+              </Text>
+            </View>
+            <View style={styles.statusRow}>
+              <Icon
+                name={getStockStatusIcon(item.currentStock, item.reorderLevel)}
+                size={16}
+                color={getStockStatusColor(item.currentStock, item.reorderLevel)}
+              />
+              {item.currentStock <= item.reorderLevel && (
+                <Chip
+                  mode="outlined"
+                  compact
+                  style={[styles.statusChip, { borderColor: theme.colors.error }]}
+                  textStyle={[styles.statusChipText, { color: theme.colors.error }]}
+                >
+                  Low Stock
+                </Chip>
+              )}
+            </View>
             <Menu
-              visible={menuVisible && selectedVoucher === item.id}
+              visible={menuVisible && selectedItem === item.id}
               onDismiss={() => {
                 setMenuVisible(false);
-                setSelectedVoucher(null);
+                setSelectedItem(null);
               }}
               anchor={
                 <IconButton
                   icon="dots-vertical"
                   size={20}
                   onPress={() => {
-                    setSelectedVoucher(item.id);
+                    setSelectedItem(item.id);
                     setMenuVisible(true);
                   }}
                 />
@@ -213,8 +212,8 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
-                  setSelectedVoucher(null);
-                  handleVoucherPress(item.id);
+                  setSelectedItem(null);
+                  handleItemPress(item.id);
                 }}
                 title="View Details"
                 leadingIcon="eye"
@@ -222,8 +221,8 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
-                  setSelectedVoucher(null);
-                  parentNavigation?.navigate('CreateVoucher', { type: 'edit', voucherId: item.id });
+                  setSelectedItem(null);
+                  parentNavigation?.navigate('CreateItem', { type: 'edit', itemId: item.id });
                 }}
                 title="Edit"
                 leadingIcon="pencil"
@@ -232,8 +231,8 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
-                  setSelectedVoucher(null);
-                  handleDeleteVoucher(item.id);
+                  setSelectedItem(null);
+                  handleDeleteItem(item.id);
                 }}
                 title="Delete"
                 leadingIcon="delete"
@@ -242,7 +241,7 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
             </Menu>
           </View>
         )}
-        onPress={() => handleVoucherPress(item.id)}
+        onPress={() => handleItemPress(item.id)}
         style={styles.listItem}
       />
     </Surface>
@@ -251,8 +250,8 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header
-        title="Vouchers"
-        subtitle={`${vouchers.length} vouchers`}
+        title="Inventory"
+        subtitle={`${items.length} items`}
         showSync
         onSettingsPress={() => parentNavigation?.navigate('Settings')}
       />
@@ -261,7 +260,7 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
         {/* Search and Filters */}
         <Surface style={[styles.searchContainer, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <Searchbar
-            placeholder="Search vouchers..."
+            placeholder="Search items..."
             onChangeText={handleSearch}
             value={searchQuery}
             style={styles.searchbar}
@@ -278,10 +277,10 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
           </Button>
         </Surface>
 
-        {/* Vouchers List */}
+        {/* Items List */}
         <FlatList
-          data={vouchers}
-          renderItem={renderVoucherItem}
+          data={items}
+          renderItem={renderInventoryItem}
           keyExtractor={(item) => item.id}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -291,7 +290,7 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Icon
-                name="receipt-outline"
+                name="package-variant-closed"
                 size={64}
                 color={theme.colors.onSurfaceVariant}
               />
@@ -299,22 +298,22 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
                 variant="headlineSmall"
                 style={[styles.emptyTitle, { color: theme.colors.onSurface }]}
               >
-                No Vouchers Found
+                No Items Found
               </Text>
               <Text
                 variant="bodyMedium"
                 style={[styles.emptySubtitle, { color: theme.colors.onSurfaceVariant }]}
               >
-                {searchQuery ? 'Try adjusting your search criteria' : 'Create your first voucher to get started'}
+                {searchQuery ? 'Try adjusting your search criteria' : 'Add your first inventory item to get started'}
               </Text>
               {!searchQuery && (
                 <Button
                   mode="contained"
-                  onPress={() => parentNavigation?.navigate('CreateVoucher')}
+                  onPress={() => parentNavigation?.navigate('CreateItem')}
                   icon="plus"
                   style={styles.emptyButton}
                 >
-                  Create Voucher
+                  Add Item
                 </Button>
               )}
             </View>
@@ -326,8 +325,8 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-        onPress={() => parentNavigation?.navigate('CreateVoucher')}
-        label="New Voucher"
+        onPress={() => parentNavigation?.navigate('CreateItem')}
+        label="Add Item"
       />
     </View>
   );
@@ -363,7 +362,7 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingBottom: 100,
   },
-  voucherCard: {
+  itemCard: {
     borderRadius: 12,
     marginBottom: 8,
     overflow: 'hidden',
@@ -384,8 +383,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
   },
-  amount: {
+  stockInfo: {
+    alignItems: 'flex-end',
+  },
+  stockLevel: {
     fontWeight: '600',
+  },
+  price: {
+    fontSize: 12,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   statusChip: {
     height: 24,
@@ -421,4 +431,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VouchersScreen;
+export default InventoryScreen;

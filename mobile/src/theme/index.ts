@@ -117,17 +117,17 @@ export const lightTheme = {
     titleLarge: {
       ...MD3LightTheme.fonts.titleLarge,
       fontFamily: 'System',
-      fontWeight: '600',
+      fontWeight: '600' as const,
     },
     titleMedium: {
       ...MD3LightTheme.fonts.titleMedium,
       fontFamily: 'System',
-      fontWeight: '600',
+      fontWeight: '600' as const,
     },
     titleSmall: {
       ...MD3LightTheme.fonts.titleSmall,
       fontFamily: 'System',
-      fontWeight: '600',
+      fontWeight: '600' as const,
     },
     bodyLarge: {
       ...MD3LightTheme.fonts.bodyLarge,
@@ -144,17 +144,17 @@ export const lightTheme = {
     labelLarge: {
       ...MD3LightTheme.fonts.labelLarge,
       fontFamily: 'System',
-      fontWeight: '500',
+      fontWeight: '500' as const,
     },
     labelMedium: {
       ...MD3LightTheme.fonts.labelMedium,
       fontFamily: 'System',
-      fontWeight: '500',
+      fontWeight: '500' as const,
     },
     labelSmall: {
       ...MD3LightTheme.fonts.labelSmall,
       fontFamily: 'System',
-      fontWeight: '500',
+      fontWeight: '500' as const,
     },
   },
 };
