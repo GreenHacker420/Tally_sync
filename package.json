@@ -17,12 +17,13 @@
     "test": "npm run backend:test && npm run frontend:test",
     "backend:test": "cd backend && npm test",
     "frontend:test": "cd frontend && npm test",
-    "install:all": "npm install && npm run install:backend && npm run install:frontend && npm run install:mobile && npm run install:desktop && npm run install:desktop-agent",
+    "install:all": "npm install && npm run install:backend && npm run install:frontend && npm run install:mobile && npm run install:desktop && npm run install:desktop-agent && npm run install:ml-service",
     "install:backend": "cd backend && npm install",
     "install:frontend": "cd frontend && npm install",
     "install:mobile": "cd mobile && npm install",
     "install:desktop": "cd desktop && npm install",
     "install:desktop-agent": "cd desktop-agent && npm install",
+    "install:ml-service": "cd ml-service && pip install -r requirements.txt",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down"
@@ -48,6 +49,7 @@
     "mobile",
     "desktop",
     "desktop-agent",
+    "ml-service",
     "shared"
   ]
 }

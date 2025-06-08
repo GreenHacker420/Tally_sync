@@ -1,0 +1,44 @@
+{
+  "name": "finsync360-ml-service",
+  "version": "1.0.0",
+  "description": "AI/ML Predictive Analytics Microservice for FinSync360 ERP System",
+  "main": "main.py",
+  "scripts": {
+    "dev": "python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001",
+    "start": "python -m uvicorn main:app --host 0.0.0.0 --port 8001",
+    "test": "python -m pytest tests/ -v",
+    "test:coverage": "python -m pytest tests/ --cov=. --cov-report=html",
+    "lint": "flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics",
+    "format": "black . && isort .",
+    "type-check": "mypy .",
+    "install": "pip install -r requirements.txt",
+    "install:dev": "pip install -r requirements.txt && pip install pytest pytest-cov pytest-asyncio",
+    "docker:build": "docker build -t finsync360-ml-service .",
+    "docker:run": "docker run -p 8001:8001 --env-file .env finsync360-ml-service",
+    "train:models": "python -c \"import asyncio; from services.training_service import TrainingService; asyncio.run(TrainingService().train_all_models(force_retrain=True))\"",
+    "health": "curl -f http://localhost:8001/api/v1/health || echo 'Service not running'"
+  },
+  "keywords": [
+    "machine-learning",
+    "ai",
+    "predictive-analytics",
+    "erp",
+    "business-intelligence",
+    "fastapi",
+    "python"
+  ],
+  "author": "FinSync360 Team",
+  "license": "MIT",
+  "engines": {
+    "python": ">=3.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/finsync360.git",
+    "directory": "ml-service"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/finsync360/issues"
+  },
+  "homepage": "https://github.com/your-org/finsync360#readme"
+}
