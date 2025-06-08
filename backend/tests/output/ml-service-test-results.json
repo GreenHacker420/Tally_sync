@@ -1,0 +1,32 @@
+{
+  "startTime": "2025-06-08T05:06:20.988Z",
+  "endTime": null,
+  "totalTests": 16,
+  "passedTests": 16,
+  "failedTests": 0,
+  "testFiles": [
+    {
+      "name": "ml-service-simple.test.js",
+      "status": "unknown",
+      "passed": 0,
+      "failed": 0,
+      "total": 0,
+      "duration": 0
+    },
+    {
+      "name": "ml-service-coverage.test.js",
+      "status": "passed",
+      "passed": 16,
+      "failed": 0,
+      "total": 16,
+      "duration": 0
+    }
+  ],
+  "summary": {
+    "duration": -1749359180988,
+    "successRate": "100.0",
+    "averageTestTime": "0.00",
+    "filesExecuted": 2,
+    "filesSuccessful": 1
+  }
+}
