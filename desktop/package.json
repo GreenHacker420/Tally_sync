@@ -6,21 +6,22 @@
   "homepage": "./",
   "scripts": {
     "electron": "electron .",
-    "electron:dev": "concurrently \"npm run react:dev\" \"wait-on http://localhost:3002 && electron .\"",
-    "react:dev": "cd src/renderer && npm start",
-    "react:build": "cd src/renderer && npm run build",
-    "build": "npm run react:build && electron-builder",
-    "build:win": "npm run react:build && electron-builder --win",
-    "build:mac": "npm run react:build && electron-builder --mac",
-    "build:linux": "npm run react:build && electron-builder --linux",
+    "electron:dev": "concurrently \"npm run vite:dev\" \"wait-on http://localhost:3002 && electron .\"",
+    "vite:dev": "cd src/renderer && npm run dev",
+    "vite:build": "cd src/renderer && npm run build",
+    "build": "npm run vite:build && electron-builder",
+    "build:win": "npm run vite:build && electron-builder --win",
+    "build:mac": "npm run vite:build && electron-builder --mac",
+    "build:linux": "npm run vite:build && electron-builder --linux",
     "dist": "npm run build",
     "pack": "electron-builder --dir",
-    "postinstall": "electron-builder install-app-deps",
+
     "test": "jest",
     "lint": "eslint src/",
     "format": "prettier --write src/",
     "dev": "npm run electron:dev",
-    "start": "npm run electron:dev"
+    "start": "npm run electron:dev",
+    "setup": "npm install && cd src/renderer && npm install"
   },
   "keywords": [
     "electron",
@@ -43,18 +44,20 @@
     "wait-on": "^7.2.0"
   },
   "dependencies": {
+    "@types/node": "^20.10.1",
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.7",
     "electron-log": "^5.0.1",
-    "sqlite3": "^5.1.6",
-    "better-sqlite3": "^9.2.2",
     "axios": "^1.6.2",
     "ws": "^8.14.2",
     "node-cron": "^3.0.3",
     "uuid": "^9.0.1",
-    "bcrypt": "^5.1.1",
     "jsonwebtoken": "^9.0.2",
-    "moment": "^2.29.4"
+    "moment": "^2.29.4",
+    "electron-is-dev": "^2.0.0",
+    "xlsx": "^0.18.5",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0"
   },
   "build": {
     "appId": "com.finsync360.desktop",
@@ -65,7 +68,8 @@
     },
     "files": [
       "src/main/**/*",
-      "src/renderer/build/**/*",
+      "src/renderer/dist/**/*",
+      "src/database/**/*",
       "node_modules/**/*",
       "package.json"
     ],
@@ -93,6 +97,5 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     }
-  },
-  "main": "src/main/main.js"
+  }
 }
