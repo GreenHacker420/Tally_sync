@@ -106,14 +106,77 @@ class ComprehensiveTestSuite {
     try {
       const testRunner = new TestRunner();
       await testRunner.runAllTests();
-      
+
       // Extract results from test runner
       this.results.testResults = testRunner.testResults;
-      
-      console.log('✅ Unit tests completed successfully\n');
+
+      console.log('✅ Unit tests completed successfully');
+
+      // Step 3.1: Run ML Service Tests
+      await this.runMLServiceTests();
+
     } catch (error) {
       console.error('❌ Unit tests failed:', error.message);
       this.results.testResults = `Failed: ${error.message}`;
+    }
+  }
+
+  async runMLServiceTests() {
+    console.log('\n🤖 Step 3.1: Running ML Service Integration Tests...');
+    console.log('===================================================');
+
+    try {
+      const { spawn } = require('child_process');
+
+      // Run ML service specific tests
+      const mlTestFiles = [
+        'ml-service.test.js',
+        'ml-service-integration.test.js',
+        'ml-service-coverage.test.js'
+      ];
+
+      for (const testFile of mlTestFiles) {
+        console.log(`   🔬 Running ${testFile}...`);
+
+        await new Promise((resolve, reject) => {
+          const testProcess = spawn('npm', ['test', '--', testFile], {
+            stdio: 'pipe',
+            cwd: process.cwd()
+          });
+
+          let output = '';
+          let errorOutput = '';
+
+          testProcess.stdout.on('data', (data) => {
+            output += data.toString();
+          });
+
+          testProcess.stderr.on('data', (data) => {
+            errorOutput += data.toString();
+          });
+
+          testProcess.on('close', (code) => {
+            if (code === 0) {
+              console.log(`   ✅ ${testFile} passed`);
+              resolve();
+            } else {
+              console.log(`   ❌ ${testFile} failed`);
+              console.log(`   Error: ${errorOutput}`);
+              resolve(); // Don't reject to continue with other tests
+            }
+          });
+
+          testProcess.on('error', (error) => {
+            console.log(`   ⚠️  ${testFile} could not be executed: ${error.message}`);
+            resolve(); // Don't reject to continue with other tests
+          });
+        });
+      }
+
+      console.log('✅ ML Service tests completed\n');
+
+    } catch (error) {
+      console.error('❌ ML Service tests failed:', error.message);
     }
   }
 
