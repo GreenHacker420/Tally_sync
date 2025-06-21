@@ -1,0 +1,53 @@
+{
+  "name": "finsync360-backend",
+  "description": "FinSync360 Backend API - ERP with Tally Integration",
+  "repository": "https://github.com/your-username/tally-sync",
+  "logo": "https://your-domain.com/logo.png",
+  "keywords": ["node", "express", "mongodb", "erp", "tally", "accounting"],
+  "image": "heroku/nodejs",
+  "stack": "heroku-22",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "mongolab:sandbox"
+    },
+    {
+      "plan": "heroku-redis:mini"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    },
+    "JWT_SECRET": {
+      "description": "JWT secret key for authentication",
+      "generator": "secret"
+    },
+    "ENCRYPTION_KEY": {
+      "description": "32-character encryption key",
+      "generator": "secret"
+    },
+    "BCRYPT_ROUNDS": {
+      "description": "Number of bcrypt rounds",
+      "value": "12"
+    },
+    "LOG_LEVEL": {
+      "description": "Logging level",
+      "value": "info"
+    }
+  },
+  "scripts": {
+    "postdeploy": "npm run seed"
+  }
+}
