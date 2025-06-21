@@ -27,7 +27,7 @@ import Header from '../components/common/Header';
 
 // Store
 import { AppDispatch } from '../store';
-import { useAuth, useInventory, useSync } from '../store/hooks';
+import { useInventory } from '../store/hooks';
 import { fetchInventoryItems, deleteItem, clearError } from '../store/slices/inventorySlice';
 
 // Types
@@ -48,9 +48,7 @@ const InventoryScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { user } = useAuth();
-  const { items, isLoading, error } = useInventory();
-  const { isOnline } = useSync();
+  const { items, error } = useInventory();
 
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,16 +75,11 @@ const InventoryScreen: React.FC<Props> = ({ navigation }) => {
 
   const loadItems = useCallback(async () => {
     try {
-      await dispatch(fetchInventoryItems({
-        search: filters.search,
-        category: filters.category !== 'all' ? filters.category : undefined,
-        status: filters.status !== 'all' ? filters.status : undefined,
-        stockLevel: filters.stockLevel !== 'all' ? filters.stockLevel : undefined,
-      })).unwrap();
+      await dispatch(fetchInventoryItems({ refresh: true })).unwrap();
     } catch (error) {
       console.error('Failed to load items:', error);
     }
-  }, [dispatch, filters]);
+  }, [dispatch]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

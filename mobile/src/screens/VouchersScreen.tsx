@@ -27,8 +27,8 @@ import Header from '../components/common/Header';
 
 // Store
 import { AppDispatch } from '../store';
-import { useAuth, useVoucher, useSync } from '../store/hooks';
-import { fetchVouchers, deleteVoucher, setFilters, clearError } from '../store/slices/voucherSlice';
+import { useVoucher } from '../store/hooks';
+import { fetchVouchers, deleteVoucher, clearError } from '../store/slices/voucherSlice';
 
 // Types
 import { MainTabScreenProps } from '../types/navigation';
@@ -48,9 +48,7 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { user } = useAuth();
-  const { vouchers, isLoading, error } = useVoucher();
-  const { isOnline } = useSync();
+  const { vouchers, error } = useVoucher();
 
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,16 +75,11 @@ const VouchersScreen: React.FC<Props> = ({ navigation }) => {
 
   const loadVouchers = useCallback(async () => {
     try {
-      await dispatch(fetchVouchers({
-        search: filters.search,
-        type: filters.type !== 'all' ? filters.type : undefined,
-        status: filters.status !== 'all' ? filters.status : undefined,
-        dateRange: filters.dateRange !== 'all' ? filters.dateRange : undefined,
-      })).unwrap();
+      await dispatch(fetchVouchers({ refresh: true })).unwrap();
     } catch (error) {
       console.error('Failed to load vouchers:', error);
     }
-  }, [dispatch, filters]);
+  }, [dispatch]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

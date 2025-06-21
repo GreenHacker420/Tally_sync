@@ -1,6 +1,7 @@
 // Navigation Parameter Lists
 
 export type RootStackParamList = {
+  Splash: undefined;
   Onboarding: undefined;
   Auth: undefined;
   Main: undefined;
@@ -27,6 +28,9 @@ export type MainStackParamList = {
   PaymentPrediction: undefined;
   RiskAssessment: undefined;
   InventoryForecast: undefined;
+  Payment: undefined;
+  Notifications: undefined;
+  TallyIntegration: undefined;
 };
 
 export type MainTabParamList = {

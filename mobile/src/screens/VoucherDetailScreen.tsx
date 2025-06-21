@@ -6,8 +6,7 @@ import {
 } from 'react-native';
 import {
   Surface,
-  Title,
-  Paragraph,
+  Text,
   Chip,
   Card,
   List,
@@ -98,10 +97,12 @@ const VoucherDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         <Surface style={styles.headerCard} elevation={2}>
           <View style={styles.headerRow}>
             <View style={styles.headerInfo}>
-              <Title style={styles.voucherNumber}>{selectedVoucher.voucherNumber}</Title>
-              <Paragraph style={styles.voucherDate}>
+              <Text variant="headlineSmall" style={styles.voucherNumber}>
+                {selectedVoucher.voucherNumber}
+              </Text>
+              <Text variant="bodyMedium" style={styles.voucherDate}>
                 {formatDate(selectedVoucher.date)}
-              </Paragraph>
+              </Text>
             </View>
             
             <View style={styles.headerChips}>
@@ -124,15 +125,15 @@ const VoucherDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
           
           <View style={styles.amountContainer}>
-            <Title style={[styles.amount, { color: theme.colors.primary }]}>
+            <Text variant="headlineMedium" style={[styles.amount, { color: theme.colors.primary }]}>
               {formatCurrency(selectedVoucher.amount)}
-            </Title>
+            </Text>
           </View>
         </Surface>
 
         {/* Voucher Details */}
         <Surface style={styles.detailsCard} elevation={2}>
-          <Title style={styles.cardTitle}>Voucher Information</Title>
+          <Text variant="titleMedium" style={styles.cardTitle}>Voucher Information</Text>
           
           <List.Item
             title="Voucher Type"
@@ -173,13 +174,13 @@ const VoucherDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Voucher Entries */}
         <Surface style={styles.entriesCard} elevation={2}>
-          <Title style={styles.cardTitle}>Accounting Entries</Title>
+          <Text variant="titleMedium" style={styles.cardTitle}>Accounting Entries</Text>
           
           {selectedVoucher.entries.map((entry, index) => (
             <Card key={entry.id} style={styles.entryCard}>
               <Card.Content>
                 <View style={styles.entryHeader}>
-                  <Title style={styles.accountName}>{entry.accountName}</Title>
+                  <Text variant="titleSmall" style={styles.accountName}>{entry.accountName}</Text>
                   <View style={styles.entryAmounts}>
                     {entry.debitAmount > 0 && (
                       <Chip
@@ -205,9 +206,9 @@ const VoucherDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
                 
                 {entry.narration && (
-                  <Paragraph style={styles.entryNarration}>
+                  <Text variant="bodyMedium" style={styles.entryNarration}>
                     {entry.narration}
-                  </Paragraph>
+                  </Text>
                 )}
               </Card.Content>
             </Card>
@@ -217,7 +218,7 @@ const VoucherDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Sync Information */}
         {selectedVoucher.tallyId && (
           <Surface style={styles.syncCard} elevation={2}>
-            <Title style={styles.cardTitle}>Sync Information</Title>
+            <Text variant="titleMedium" style={styles.cardTitle}>Sync Information</Text>
             
             <List.Item
               title="Tally ID"

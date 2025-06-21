@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { apiClient } from '../../services/apiClient';
+import { inventoryService } from '../../services/inventoryService';
 import { databaseService } from '../../services/databaseService';
-import { InventoryItem } from '../../types';
+import { InventoryItem, CreateInventoryItemData, UpdateInventoryItemData } from '../../types';
 
 interface InventoryState {
   items: InventoryItem[];
@@ -14,9 +14,17 @@ interface InventoryState {
     lowStock?: boolean;
   };
   stats: {
-    totalItems: number;
-    lowStockItems: number;
+    total: number;
+    lowStock: number;
+    outOfStock: number;
     totalValue: number;
+    categories: Record<string, number>;
+    topItems: Array<{
+      id: string;
+      name: string;
+      currentStock: number;
+      value: number;
+    }>;
   };
 }
 
@@ -27,9 +35,12 @@ const initialState: InventoryState = {
   error: null,
   filters: {},
   stats: {
-    totalItems: 0,
-    lowStockItems: 0,
+    total: 0,
+    lowStock: 0,
+    outOfStock: 0,
     totalValue: 0,
+    categories: {},
+    topItems: [],
   },
 };
 
@@ -41,11 +52,9 @@ export const fetchInventoryItems = createAsyncThunk(
       const state = getState() as any;
       const { filters } = state.inventory;
 
-      const response = await apiClient.get('/inventory/items', {
-        params: filters,
-      });
+      const response = await inventoryService.getItems(filters);
 
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch inventory items');
     }
@@ -54,12 +63,12 @@ export const fetchInventoryItems = createAsyncThunk(
 
 export const fetchInventoryStats = createAsyncThunk(
   'inventory/fetchStats',
-  async (_, { rejectWithValue }) => {
+  async (companyId: string | undefined = undefined, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get('/inventory/stats');
-      return response.data.data;
+      const response = await inventoryService.getInventoryStats(companyId);
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch inventory stats');
+      return rejectWithValue(error.message || 'Failed to fetch inventory stats');
     }
   }
 );
@@ -68,24 +77,24 @@ export const fetchItemById = createAsyncThunk(
   'inventory/fetchItemById',
   async (itemId: string, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/inventory/items/${itemId}`);
-      return response.data.data;
+      const response = await inventoryService.getItemById(itemId);
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch item');
+      return rejectWithValue(error.message || 'Failed to fetch item');
     }
   }
 );
 
 export const createItem = createAsyncThunk(
   'inventory/createItem',
-  async (itemData: Partial<InventoryItem>, { rejectWithValue }) => {
+  async (itemData: CreateInventoryItemData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/inventory/items', itemData);
-      
+      const response = await inventoryService.createItem(itemData);
+
       // Also store locally for offline access
-      await databaseService.upsertInventoryItem(response.data.data);
-      
-      return response.data.data;
+      await databaseService.upsertInventoryItem(response.data);
+
+      return response.data;
     } catch (error: any) {
       // Store as pending change if offline
       if (!navigator.onLine) {
@@ -104,7 +113,7 @@ export const createItem = createAsyncThunk(
           unit: itemData.unit || 'Nos',
           rate: itemData.rate || 0,
           openingStock: itemData.openingStock || 0,
-          currentStock: itemData.currentStock || 0,
+          currentStock: itemData.openingStock || 0,
           reorderLevel: itemData.reorderLevel || 0,
           isActive: true,
           companyId: itemData.companyId || '',
@@ -122,14 +131,14 @@ export const createItem = createAsyncThunk(
 
 export const updateItem = createAsyncThunk(
   'inventory/updateItem',
-  async ({ id, data }: { id: string; data: Partial<InventoryItem> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: string; data: UpdateInventoryItemData }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put(`/inventory/items/${id}`, data);
-      
+      const response = await inventoryService.updateItem(id, data);
+
       // Also update locally
-      await databaseService.upsertInventoryItem(response.data.data);
-      
-      return response.data.data;
+      await databaseService.upsertInventoryItem(response.data);
+
+      return response.data;
     } catch (error: any) {
       // Store as pending change if offline
       if (!navigator.onLine) {
@@ -149,7 +158,7 @@ export const deleteItem = createAsyncThunk(
   'inventory/deleteItem',
   async (itemId: string, { rejectWithValue }) => {
     try {
-      await apiClient.delete(`/inventory/items/${itemId}`);
+      await inventoryService.deleteItem(itemId);
       return itemId;
     } catch (error: any) {
       // Store as pending change if offline
@@ -170,16 +179,24 @@ export const deleteItem = createAsyncThunk(
 export const updateStock = createAsyncThunk(
   'inventory/updateStock',
   async (
-    { itemId, quantity, type }: { itemId: string; quantity: number; type: 'in' | 'out' | 'adjustment' },
+    { itemId, quantity, type, reference, notes }: {
+      itemId: string;
+      quantity: number;
+      type: 'in' | 'out' | 'adjustment';
+      reference?: string;
+      notes?: string;
+    },
     { rejectWithValue }
   ) => {
     try {
-      const response = await apiClient.post(`/inventory/items/${itemId}/stock`, {
+      const response = await inventoryService.updateStock(itemId, {
         quantity,
         type,
+        reference,
+        notes,
       });
-      
-      return response.data.data;
+
+      return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update stock');
     }
@@ -252,7 +269,7 @@ const inventorySlice = createSlice({
     builder
       .addCase(createItem.fulfilled, (state, action) => {
         state.items.unshift(action.payload);
-        state.stats.totalItems += 1;
+        state.stats.total += 1;
       });
 
     // Update item
@@ -274,7 +291,7 @@ const inventorySlice = createSlice({
         if (state.selectedItem?.id === action.payload) {
           state.selectedItem = null;
         }
-        state.stats.totalItems = Math.max(0, state.stats.totalItems - 1);
+        state.stats.total = Math.max(0, state.stats.total - 1);
       });
 
     // Update stock

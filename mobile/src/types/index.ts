@@ -311,3 +311,71 @@ export interface BusinessMetrics {
     profit: number;
   };
 }
+
+// Additional types for services
+export interface CreateCompanyData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  gstNumber?: string;
+  panNumber?: string;
+  settings?: Partial<CompanySettings>;
+}
+
+export interface UpdateCompanyData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  gstNumber?: string;
+  panNumber?: string;
+  settings?: Partial<CompanySettings>;
+}
+
+export interface CreateVoucherData {
+  voucherNumber?: string;
+  voucherType: VoucherType;
+  date: string;
+  reference?: string;
+  narration?: string;
+  amount?: number;
+  entries: VoucherEntry[];
+  companyId: string;
+  createdBy?: string;
+}
+
+export interface UpdateVoucherData {
+  voucherType?: VoucherType;
+  date?: string;
+  reference?: string;
+  narration?: string;
+  entries?: VoucherEntry[];
+  status?: 'draft' | 'posted' | 'cancelled';
+}
+
+export interface CreateInventoryItemData {
+  name: string;
+  code: string;
+  description?: string;
+  category: string;
+  unit: string;
+  rate: number;
+  openingStock: number;
+  reorderLevel: number;
+  maxLevel?: number;
+  location?: string;
+  companyId: string;
+}
+
+export interface UpdateInventoryItemData {
+  name?: string;
+  code?: string;
+  description?: string;
+  category?: string;
+  unit?: string;
+  rate?: number;
+  reorderLevel?: number;
+  maxLevel?: number;
+  location?: string;
+}

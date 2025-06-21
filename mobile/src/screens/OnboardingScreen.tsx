@@ -8,8 +8,7 @@ import {
 } from 'react-native';
 import {
   Surface,
-  Title,
-  Paragraph,
+  Text,
   Button,
   useTheme,
 } from 'react-native-paper';
@@ -111,13 +110,19 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
           />
         </View>
         
-        <Title style={[styles.title, { color: theme.colors.onSurface }]}>
+        <Text
+          variant="headlineMedium"
+          style={[styles.title, { color: theme.colors.onSurface }]}
+        >
           {item.title}
-        </Title>
-        
-        <Paragraph style={[styles.description, { color: theme.colors.onSurfaceVariant }]}>
+        </Text>
+
+        <Text
+          variant="bodyLarge"
+          style={[styles.description, { color: theme.colors.onSurfaceVariant }]}
+        >
           {item.description}
-        </Paragraph>
+        </Text>
       </View>
     </View>
   );

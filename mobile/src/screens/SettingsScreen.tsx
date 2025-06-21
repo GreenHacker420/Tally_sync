@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import {
   Surface,
-  Title,
+  Text,
   List,
   Switch,
   Button,
@@ -90,7 +90,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Account Section */}
         <Surface style={styles.section} elevation={2}>
-          <Title style={styles.sectionTitle}>Account</Title>
+          <Text variant="titleMedium" style={styles.sectionTitle}>Account</Text>
           
           <List.Item
             title={user?.name || 'User'}
@@ -113,7 +113,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Sync Settings */}
         <Surface style={styles.section} elevation={2}>
-          <Title style={styles.sectionTitle}>Synchronization</Title>
+          <Text variant="titleMedium" style={styles.sectionTitle}>Synchronization</Text>
           
           <List.Item
             title="Auto Sync"
@@ -122,7 +122,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             right={() => (
               <Switch
                 value={settings.autoSync}
-                onValueChange={(value) => dispatch(setAutoSync(value))}
+                onValueChange={(value: boolean) => {
+                  dispatch(setAutoSync(value));
+                }}
               />
             )}
           />
@@ -144,7 +146,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             right={() => (
               <Switch
                 value={settings.offlineMode}
-                onValueChange={(value) => dispatch(setOfflineMode(value))}
+                onValueChange={(value: boolean) => {
+                  dispatch(setOfflineMode(value));
+                }}
               />
             )}
           />
@@ -152,7 +156,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Security Settings */}
         <Surface style={styles.section} elevation={2}>
-          <Title style={styles.sectionTitle}>Security</Title>
+          <Text variant="titleMedium" style={styles.sectionTitle}>Security</Text>
           
           <List.Item
             title="Biometric Authentication"
@@ -161,7 +165,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             right={() => (
               <Switch
                 value={settings.biometricEnabled}
-                onValueChange={(value) => dispatch(setBiometricEnabled(value))}
+                onValueChange={(value: boolean) => {
+                  dispatch(setBiometricEnabled(value));
+                }}
               />
             )}
           />
@@ -169,7 +175,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* App Settings */}
         <Surface style={styles.section} elevation={2}>
-          <Title style={styles.sectionTitle}>App Settings</Title>
+          <Text variant="titleMedium" style={styles.sectionTitle}>App Settings</Text>
           
           <List.Item
             title="Theme"
@@ -188,7 +194,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             right={() => (
               <Switch
                 value={settings.notificationsEnabled}
-                onValueChange={(value) => dispatch(setNotificationsEnabled(value))}
+                onValueChange={(value: boolean) => {
+                  dispatch(setNotificationsEnabled(value));
+                }}
               />
             )}
           />
@@ -200,7 +208,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             right={() => (
               <Switch
                 value={settings.debugMode}
-                onValueChange={(value) => dispatch(setDebugMode(value))}
+                onValueChange={(value: boolean) => {
+                  dispatch(setDebugMode(value));
+                }}
               />
             )}
           />
@@ -209,7 +219,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         {/* ML Settings */}
         {isMLServiceAvailable && (
           <Surface style={styles.section} elevation={2}>
-            <Title style={styles.sectionTitle}>AI/ML Features</Title>
+            <Text variant="titleMedium" style={styles.sectionTitle}>AI/ML Features</Text>
             
             <List.Item
               title="ML Analytics"
@@ -231,7 +241,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Data Management */}
         <Surface style={styles.section} elevation={2}>
-          <Title style={styles.sectionTitle}>Data Management</Title>
+          <Text variant="titleMedium" style={styles.sectionTitle}>Data Management</Text>
           
           <List.Item
             title="Clear Cache"
@@ -254,7 +264,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* About Section */}
         <Surface style={styles.section} elevation={2}>
-          <Title style={styles.sectionTitle}>About</Title>
+          <Text variant="titleMedium" style={styles.sectionTitle}>About</Text>
           
           <List.Item
             title="App Version"

@@ -1,5 +1,5 @@
 import SQLite from 'react-native-sqlite-storage';
-import { Company, Voucher, InventoryItem, SyncSession } from '../types';
+import { Company, Voucher, InventoryItem, SyncSession, SyncConflict } from '../types';
 
 // Enable debugging
 SQLite.DEBUG(true);
@@ -134,6 +134,48 @@ class DatabaseService {
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL,
         updatedAt TEXT
+      )`,
+
+      // Conflicts table
+      `CREATE TABLE IF NOT EXISTS conflicts (
+        id TEXT PRIMARY KEY,
+        entityType TEXT NOT NULL,
+        entityId TEXT NOT NULL,
+        conflictType TEXT NOT NULL,
+        localData TEXT NOT NULL,
+        remoteData TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        createdAt TEXT NOT NULL,
+        resolvedAt TEXT
+      )`,
+
+      // Cache table for offline data
+      `CREATE TABLE IF NOT EXISTS cache (
+        key TEXT PRIMARY KEY,
+        data TEXT NOT NULL,
+        expiresAt TEXT,
+        createdAt TEXT NOT NULL
+      )`,
+
+      // Conflicts table
+      `CREATE TABLE IF NOT EXISTS conflicts (
+        id TEXT PRIMARY KEY,
+        entityType TEXT NOT NULL,
+        entityId TEXT NOT NULL,
+        conflictType TEXT NOT NULL,
+        localData TEXT NOT NULL,
+        remoteData TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        createdAt TEXT NOT NULL,
+        resolvedAt TEXT
+      )`,
+
+      // Cache table for offline data
+      `CREATE TABLE IF NOT EXISTS cache (
+        key TEXT PRIMARY KEY,
+        data TEXT NOT NULL,
+        expiresAt TEXT,
+        createdAt TEXT NOT NULL
       )`,
     ];
 
@@ -328,7 +370,7 @@ class DatabaseService {
   async addPendingChange(change: Omit<PendingChange, 'id' | 'timestamp' | 'synced'>): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
-    const id = `change_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `change_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const timestamp = new Date().toISOString();
 
     const sql = `
@@ -428,6 +470,251 @@ class DatabaseService {
     }
 
     return sessions;
+  }
+
+  /**
+   * Conflict management operations
+   */
+  async addConflict(conflict: Omit<SyncConflict, 'id' | 'createdAt'>): Promise<string> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const id = `conflict_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    const createdAt = new Date().toISOString();
+
+    const sql = `
+      INSERT INTO conflicts (id, entityType, entityId, conflictType, localData, remoteData, status, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    await this.db.executeSql(sql, [
+      id,
+      conflict.entityType,
+      conflict.entityId,
+      conflict.conflictType,
+      JSON.stringify(conflict.localData),
+      JSON.stringify(conflict.remoteData),
+      conflict.status || 'pending',
+      createdAt,
+    ]);
+
+    return id;
+  }
+
+  async getConflicts(status?: string): Promise<SyncConflict[]> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    let sql = 'SELECT * FROM conflicts';
+    const params: any[] = [];
+
+    if (status) {
+      sql += ' WHERE status = ?';
+      params.push(status);
+    }
+
+    sql += ' ORDER BY createdAt DESC';
+
+    const [results] = await this.db.executeSql(sql, params);
+    const conflicts: SyncConflict[] = [];
+
+    for (let i = 0; i < results.rows.length; i++) {
+      const row = results.rows.item(i);
+      conflicts.push({
+        ...row,
+        localData: JSON.parse(row.localData),
+        remoteData: JSON.parse(row.remoteData),
+      });
+    }
+
+    return conflicts;
+  }
+
+  async resolveConflict(conflictId: string, status: string = 'resolved'): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const resolvedAt = new Date().toISOString();
+
+    await this.db.executeSql(
+      'UPDATE conflicts SET status = ?, resolvedAt = ? WHERE id = ?',
+      [status, resolvedAt, conflictId]
+    );
+  }
+
+  async deleteConflict(conflictId: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    await this.db.executeSql('DELETE FROM conflicts WHERE id = ?', [conflictId]);
+  }
+
+  /**
+   * Cache management operations
+   */
+  async setCache(key: string, data: any, expirationMinutes?: number): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const createdAt = new Date().toISOString();
+    let expiresAt: string | null = null;
+
+    if (expirationMinutes) {
+      const expiration = new Date();
+      expiration.setMinutes(expiration.getMinutes() + expirationMinutes);
+      expiresAt = expiration.toISOString();
+    }
+
+    const sql = `
+      INSERT OR REPLACE INTO cache (key, data, expiresAt, createdAt)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    await this.db.executeSql(sql, [
+      key,
+      JSON.stringify(data),
+      expiresAt,
+      createdAt,
+    ]);
+  }
+
+  async getCache<T = any>(key: string): Promise<T | null> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const [results] = await this.db.executeSql(
+      'SELECT * FROM cache WHERE key = ?',
+      [key]
+    );
+
+    if (results.rows.length === 0) {
+      return null;
+    }
+
+    const row = results.rows.item(0);
+
+    // Check if cache has expired
+    if (row.expiresAt) {
+      const expirationDate = new Date(row.expiresAt);
+      if (expirationDate < new Date()) {
+        // Cache expired, delete it
+        await this.deleteCache(key);
+        return null;
+      }
+    }
+
+    return JSON.parse(row.data);
+  }
+
+  async deleteCache(key: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    await this.db.executeSql('DELETE FROM cache WHERE key = ?', [key]);
+  }
+
+  async clearExpiredCache(): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const now = new Date().toISOString();
+    await this.db.executeSql(
+      'DELETE FROM cache WHERE expiresAt IS NOT NULL AND expiresAt < ?',
+      [now]
+    );
+  }
+
+  async clearAllCache(): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    await this.db.executeSql('DELETE FROM cache');
+  }
+
+  /**
+   * Data integrity and conflict detection
+   */
+  async detectConflicts(entityType: string, localData: any, remoteData: any): Promise<SyncConflict | null> {
+    // Simple conflict detection based on updatedAt timestamps
+    const localUpdated = new Date(localData.updatedAt || 0);
+    const remoteUpdated = new Date(remoteData.updatedAt || 0);
+    const lastSynced = new Date(localData.lastSyncedAt || 0);
+
+    // If both local and remote have been updated since last sync, it's a conflict
+    if (localUpdated > lastSynced && remoteUpdated > lastSynced && localUpdated.getTime() !== remoteUpdated.getTime()) {
+      return {
+        id: '', // Will be set when saved
+        entityType,
+        entityId: localData.id,
+        conflictType: 'data_mismatch',
+        localData,
+        remoteData,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Backup and restore operations
+   */
+  async createBackup(): Promise<string> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const backup = {
+      timestamp: new Date().toISOString(),
+      companies: await this.getCompanies(),
+      vouchers: await this.getVouchers(),
+      inventoryItems: await this.getInventoryItems(),
+      pendingChanges: await this.getPendingChanges(),
+      syncHistory: await this.getSyncHistory(),
+    };
+
+    const backupKey = `backup_${Date.now()}`;
+    await this.setCache(backupKey, backup);
+
+    return backupKey;
+  }
+
+  async restoreFromBackup(backupKey: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const backup = await this.getCache(backupKey);
+    if (!backup) {
+      throw new Error('Backup not found');
+    }
+
+    // Clear existing data
+    await this.db.executeSql('DELETE FROM companies');
+    await this.db.executeSql('DELETE FROM vouchers');
+    await this.db.executeSql('DELETE FROM inventory_items');
+    await this.db.executeSql('DELETE FROM pending_changes');
+
+    // Restore data
+    for (const company of backup.companies || []) {
+      await this.upsertCompany(company);
+    }
+
+    for (const voucher of backup.vouchers || []) {
+      await this.upsertVoucher(voucher);
+    }
+
+    for (const item of backup.inventoryItems || []) {
+      await this.upsertInventoryItem(item);
+    }
+
+    for (const change of backup.pendingChanges || []) {
+      await this.addPendingChange(change);
+    }
+  }
+
+  /**
+   * Database maintenance
+   */
+  async vacuum(): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    await this.db.executeSql('VACUUM');
+  }
+
+  async getDatabaseSize(): Promise<number> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const [results] = await this.db.executeSql("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()");
+    return results.rows.item(0).size;
   }
 
   /**

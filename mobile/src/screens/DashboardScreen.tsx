@@ -27,12 +27,22 @@ import SyncStatusCard from '../components/dashboard/SyncStatusCard';
 
 // Store
 import { AppDispatch } from '../store';
-import { useAuth, useSync, useML } from '../store/hooks';
+import {
+  useAuth,
+  useSync,
+  useML,
+  useVoucher,
+  useInventory,
+  usePayment,
+  useNotification,
+  useCompany
+} from '../store/hooks';
 import { getSyncStatus } from '../store/slices/syncSlice';
 import { checkMLServiceHealth, fetchBusinessMetrics } from '../store/slices/mlSlice';
-
-// Services
-import { apiClient } from '../services';
+import { fetchVoucherStats } from '../store/slices/voucherSlice';
+import { fetchInventoryStats } from '../store/slices/inventorySlice';
+import { fetchPaymentStats } from '../store/slices/paymentSlice';
+import { fetchUnreadCount } from '../store/slices/notificationSlice';
 
 // Types
 import { MainTabScreenProps, MainStackScreenProps } from '../types/navigation';
@@ -42,6 +52,8 @@ const { width } = Dimensions.get('window');
 interface DashboardStats {
   totalVouchers: number;
   totalItems: number;
+  totalPayments: number;
+  unreadNotifications: number;
   pendingSync: number;
   lastSyncTime: string | null;
 }
@@ -57,10 +69,17 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useAuth();
   const { isOnline, isSyncing, lastSyncTime, pendingChanges } = useSync();
   const { isMLServiceAvailable, businessMetrics } = useML();
+  const { stats: voucherStats } = useVoucher();
+  const { stats: inventoryStats } = useInventory();
+  const { stats: paymentStats } = usePayment();
+  const { unreadCount } = useNotification();
+  const { selectedCompany } = useCompany();
   
   const [stats, setStats] = useState<DashboardStats>({
     totalVouchers: 0,
     totalItems: 0,
+    totalPayments: 0,
+    unreadNotifications: 0,
     pendingSync: 0,
     lastSyncTime: null,
   });
@@ -75,16 +94,23 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      
-      // Load dashboard statistics
-      const [vouchersRes, itemsRes] = await Promise.all([
-        apiClient.get('/vouchers/stats'),
-        apiClient.get('/inventory/stats'),
-      ]);
 
+      if (selectedCompany) {
+        // Load dashboard statistics using Redux actions
+        await Promise.all([
+          dispatch(fetchVoucherStats(selectedCompany.id)),
+          dispatch(fetchInventoryStats(selectedCompany.id)),
+          dispatch(fetchPaymentStats({ companyId: selectedCompany.id })),
+          dispatch(fetchUnreadCount()),
+        ]);
+      }
+
+      // Update local stats from Redux state
       setStats({
-        totalVouchers: vouchersRes.data.data.total || 0,
-        totalItems: itemsRes.data.data.total || 0,
+        totalVouchers: voucherStats?.total || 0,
+        totalItems: inventoryStats?.total || 0,
+        totalPayments: paymentStats?.totalTransactions || 0,
+        unreadNotifications: unreadCount || 0,
         pendingSync: pendingChanges,
         lastSyncTime,
       });
@@ -191,6 +217,23 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
             icon="package-variant"
             color={theme.colors.secondary}
             onPress={() => navigation.navigate('Inventory')}
+          />
+        </View>
+
+        <View style={styles.statsGrid}>
+          <StatsCard
+            title="Payments"
+            value={stats.totalPayments}
+            icon="credit-card"
+            color="#4CAF50"
+            onPress={() => parentNavigation?.navigate('Payment')}
+          />
+          <StatsCard
+            title="Notifications"
+            value={stats.unreadNotifications}
+            icon="bell"
+            color="#FF9800"
+            onPress={() => parentNavigation?.navigate('Notifications')}
           />
         </View>
 

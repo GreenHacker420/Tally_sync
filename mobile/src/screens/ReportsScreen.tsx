@@ -5,7 +5,6 @@ import {
   StyleSheet,
   RefreshControl,
   Alert,
-  Dimensions,
 } from 'react-native';
 import {
   Surface,
@@ -15,26 +14,18 @@ import {
   List,
   useTheme,
   SegmentedButtons,
-  Chip,
 } from 'react-native-paper';
-import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Components
 import Header from '../components/common/Header';
 import StatsCard from '../components/dashboard/StatsCard';
 
-// Store
-import { AppDispatch } from '../store';
-import { useAuth, useSync } from '../store/hooks';
-
 // Services
 import { apiClient } from '../services';
 
 // Types
 import { MainTabScreenProps } from '../types/navigation';
-
-const { width } = Dimensions.get('window');
 
 type Props = MainTabScreenProps<'Reports'>;
 
@@ -142,20 +133,15 @@ interface ReportData {
 const ReportsScreen: React.FC<Props> = ({ navigation }) => {
   const parentNavigation = navigation.getParent();
   const theme = useTheme();
-  const dispatch = useDispatch<AppDispatch>();
-
-  const { user } = useAuth();
-  const { isOnline } = useSync();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [reportData, setReportData] = useState<ReportData>({
     totalRevenue: 0,
     totalExpenses: 0,
-    netProfit: 0,
-    totalVouchers: 0,
-    totalItems: 0,
+    netProfit: 40000,
+    totalVouchers: 156,
+    totalItems: 89,
     topSellingItems: [],
     monthlyTrends: [],
   });
@@ -170,8 +156,6 @@ const ReportsScreen: React.FC<Props> = ({ navigation }) => {
 
   const loadReportData = useCallback(async () => {
     try {
-      setLoading(true);
-
       const response = await apiClient.get('/reports/dashboard');
 
       if (response.data.success) {
@@ -180,8 +164,6 @@ const ReportsScreen: React.FC<Props> = ({ navigation }) => {
     } catch (error) {
       console.error('Failed to load report data:', error);
       Alert.alert('Error', 'Failed to load report data');
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -235,7 +217,7 @@ const ReportsScreen: React.FC<Props> = ({ navigation }) => {
         title={report.title}
         description={report.description}
         onPress={() => handleReportPress(report.id)}
-        left={(props) => (
+        left={() => (
           <View style={[styles.iconContainer, { backgroundColor: `${getCategoryColor(report.category)}20` }]}>
             <Icon
               name={report.icon}
@@ -244,7 +226,7 @@ const ReportsScreen: React.FC<Props> = ({ navigation }) => {
             />
           </View>
         )}
-        right={(props) => (
+        right={() => (
           <Icon
             name="chevron-right"
             size={24}

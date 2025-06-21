@@ -3,16 +3,20 @@ import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import EncryptedStorage from 'react-native-encrypted-storage';
 
-// Reducers
+// Import reducers
 import authReducer from './slices/authSlice';
-import companyReducer from './slices/companySlice';
-import syncReducer from './slices/syncSlice';
+import mlReducer from './slices/mlSlice';
 import offlineReducer from './slices/offlineSlice';
 import settingsReducer from './slices/settingsSlice';
+import companyReducer from './slices/companySlice';
+import syncReducer from './slices/syncSlice';
 import voucherReducer from './slices/voucherSlice';
 import inventoryReducer from './slices/inventorySlice';
 import networkReducer from './slices/networkSlice';
-import mlReducer from './slices/mlSlice';
+import paymentReducer from './slices/paymentSlice';
+import reportReducer from './slices/reportSlice';
+import notificationReducer from './slices/notificationSlice';
+import tallyReducer from './slices/tallySlice';
 
 // Persist configuration
 const persistConfig = {
@@ -30,14 +34,18 @@ const authPersistConfig = {
 // Root reducer
 const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
-  company: companyReducer,
-  sync: syncReducer,
+  ml: mlReducer,
   offline: offlineReducer,
   settings: settingsReducer,
+  company: companyReducer,
+  sync: syncReducer,
   voucher: voucherReducer,
   inventory: inventoryReducer,
   network: networkReducer,
-  ml: mlReducer,
+  payment: paymentReducer,
+  report: reportReducer,
+  notification: notificationReducer,
+  tally: tallyReducer,
 });
 
 // Persisted reducer

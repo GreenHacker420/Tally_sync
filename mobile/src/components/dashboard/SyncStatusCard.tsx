@@ -2,8 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import {
   Surface,
-  Title,
-  Paragraph,
+  Text,
   Button,
   Chip,
   useTheme,
@@ -70,18 +69,18 @@ const SyncStatusCard: React.FC<SyncStatusCardProps> = ({
     <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]} elevation={2}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Title style={[styles.title, { color: theme.colors.onSurface }]}>
+          <Text variant="titleMedium" style={[styles.title, { color: theme.colors.onSurface }]}>
             Sync Status
-          </Title>
+          </Text>
           <View style={styles.statusRow}>
             <Icon
               name={getSyncStatusIcon()}
               size={16}
               color={getSyncStatusColor()}
             />
-            <Paragraph style={[styles.statusText, { color: getSyncStatusColor() }]}>
+            <Text variant="bodyMedium" style={[styles.statusText, { color: getSyncStatusColor() }]}>
               {getSyncStatusText()}
-            </Paragraph>
+            </Text>
           </View>
         </View>
         
@@ -98,19 +97,19 @@ const SyncStatusCard: React.FC<SyncStatusCardProps> = ({
 
       <View style={styles.content}>
         <View style={styles.infoRow}>
-          <Paragraph style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
+          <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
             Last sync:
-          </Paragraph>
-          <Paragraph style={[styles.value, { color: theme.colors.onSurface }]}>
+          </Text>
+          <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}>
             {formatLastSync(lastSyncTime)}
-          </Paragraph>
+          </Text>
         </View>
 
         {pendingChanges > 0 && (
           <View style={styles.infoRow}>
-            <Paragraph style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
+            <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
               Pending changes:
-            </Paragraph>
+            </Text>
             <Chip
               mode="outlined"
               compact
@@ -123,21 +122,21 @@ const SyncStatusCard: React.FC<SyncStatusCardProps> = ({
         )}
 
         <View style={styles.infoRow}>
-          <Paragraph style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
+          <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
             Connection:
-          </Paragraph>
+          </Text>
           <View style={styles.connectionStatus}>
             <Icon
               name={isOnline ? 'wifi' : 'wifi-off'}
               size={14}
               color={isOnline ? theme.colors.primary : theme.colors.error}
             />
-            <Paragraph style={[
+            <Text variant="bodyMedium" style={[
               styles.connectionText,
               { color: isOnline ? theme.colors.primary : theme.colors.error }
             ]}>
               {isOnline ? 'Online' : 'Offline'}
-            </Paragraph>
+            </Text>
           </View>
         </View>
       </View>

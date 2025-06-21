@@ -15,3 +15,7 @@ export const useNetwork = () => useAppSelector((state) => state.network);
 export const useCompany = () => useAppSelector((state) => state.company);
 export const useVoucher = () => useAppSelector((state) => state.voucher);
 export const useOffline = () => useAppSelector((state) => state.offline);
+export const usePayment = () => useAppSelector((state) => state.payment);
+export const useReport = () => useAppSelector((state) => state.report);
+export const useNotification = () => useAppSelector((state) => state.notification);
+export const useTally = () => useAppSelector((state) => state.tally);

@@ -113,6 +113,34 @@ class WebSocketService extends EventEmitter {
       this.emit('tally-status', data);
     });
 
+    this.socket.on('user-activity', (data) => {
+      this.emit('user-activity', data);
+    });
+
+    this.socket.on('payment-update', (data) => {
+      this.emit('payment-update', data);
+    });
+
+    this.socket.on('inventory-update', (data) => {
+      this.emit('inventory-update', data);
+    });
+
+    this.socket.on('voucher-update', (data) => {
+      this.emit('voucher-update', data);
+    });
+
+    this.socket.on('company-update', (data) => {
+      this.emit('company-update', data);
+    });
+
+    this.socket.on('sync-conflict', (data) => {
+      this.emit('sync-conflict', data);
+    });
+
+    this.socket.on('system-alert', (data) => {
+      this.emit('system-alert', data);
+    });
+
     this.socket.on('pong', () => {
       this.emit('pong');
     });
@@ -168,6 +196,88 @@ class WebSocketService extends EventEmitter {
    */
   requestSync(type?: string): boolean {
     return this.sendMessage('sync-request', { type });
+  }
+
+  /**
+   * Subscribe to real-time updates for a specific entity
+   */
+  subscribeToEntity(entityType: string, entityId: string): boolean {
+    return this.sendMessage('subscribe', { entityType, entityId });
+  }
+
+  /**
+   * Unsubscribe from real-time updates for a specific entity
+   */
+  unsubscribeFromEntity(entityType: string, entityId: string): boolean {
+    return this.sendMessage('unsubscribe', { entityType, entityId });
+  }
+
+  /**
+   * Send user activity update
+   */
+  sendUserActivity(activity: {
+    type: string;
+    entityType?: string;
+    entityId?: string;
+    metadata?: any;
+  }): boolean {
+    return this.sendMessage('user-activity', activity);
+  }
+
+  /**
+   * Send typing indicator
+   */
+  sendTypingIndicator(entityType: string, entityId: string, isTyping: boolean): boolean {
+    return this.sendMessage('typing', { entityType, entityId, isTyping });
+  }
+
+  /**
+   * Send presence update
+   */
+  updatePresence(status: 'online' | 'away' | 'busy' | 'offline'): boolean {
+    return this.sendMessage('presence', { status });
+  }
+
+  /**
+   * Request real-time data for dashboard
+   */
+  requestDashboardData(): boolean {
+    return this.sendMessage('dashboard-data-request', {});
+  }
+
+  /**
+   * Send notification acknowledgment
+   */
+  acknowledgeNotification(notificationId: string): boolean {
+    return this.sendMessage('notification-ack', { notificationId });
+  }
+
+  /**
+   * Send payment status update
+   */
+  sendPaymentUpdate(paymentId: string, status: string, metadata?: any): boolean {
+    return this.sendMessage('payment-update', { paymentId, status, metadata });
+  }
+
+  /**
+   * Send inventory alert
+   */
+  sendInventoryAlert(itemId: string, alertType: string, currentStock: number): boolean {
+    return this.sendMessage('inventory-alert', { itemId, alertType, currentStock });
+  }
+
+  /**
+   * Request Tally sync status
+   */
+  requestTallyStatus(): boolean {
+    return this.sendMessage('tally-status-request', {});
+  }
+
+  /**
+   * Send collaborative editing event
+   */
+  sendCollaborativeEdit(entityType: string, entityId: string, operation: any): boolean {
+    return this.sendMessage('collaborative-edit', { entityType, entityId, operation });
   }
 
   /**

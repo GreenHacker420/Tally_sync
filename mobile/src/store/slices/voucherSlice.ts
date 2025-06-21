@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { apiClient } from '../../services/apiClient';
+import { voucherService } from '../../services/voucherService';
 import { databaseService } from '../../services/databaseService';
-import { Voucher } from '../../types';
+import { Voucher, CreateVoucherData, UpdateVoucherData } from '../../types';
 
 interface VoucherState {
   vouchers: Voucher[];
@@ -46,17 +46,15 @@ export const fetchVouchers = createAsyncThunk(
       const { filters, pagination } = state.voucher;
       const page = params.page || (params.refresh ? 1 : pagination.page);
 
-      const response = await apiClient.get('/vouchers', {
-        params: {
-          page,
-          limit: pagination.limit,
-          ...filters,
-        },
+      const response = await voucherService.getVouchers({
+        page,
+        limit: pagination.limit,
+        ...filters,
       });
 
       return {
-        vouchers: response.data.data,
-        pagination: response.data.pagination,
+        vouchers: response.data,
+        pagination: response.pagination,
         refresh: params.refresh,
       };
     } catch (error: any) {
@@ -69,24 +67,24 @@ export const fetchVoucherById = createAsyncThunk(
   'voucher/fetchVoucherById',
   async (voucherId: string, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/vouchers/${voucherId}`);
-      return response.data.data;
+      const response = await voucherService.getVoucherById(voucherId);
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch voucher');
+      return rejectWithValue(error.message || 'Failed to fetch voucher');
     }
   }
 );
 
 export const createVoucher = createAsyncThunk(
   'voucher/createVoucher',
-  async (voucherData: Partial<Voucher>, { rejectWithValue }) => {
+  async (voucherData: CreateVoucherData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/vouchers', voucherData);
-      
+      const response = await voucherService.createVoucher(voucherData);
+
       // Also store locally for offline access
-      await databaseService.upsertVoucher(response.data.data);
-      
-      return response.data.data;
+      await databaseService.upsertVoucher(response.data);
+
+      return response.data;
     } catch (error: any) {
       // Store as pending change if offline
       if (!navigator.onLine) {
@@ -121,14 +119,14 @@ export const createVoucher = createAsyncThunk(
 
 export const updateVoucher = createAsyncThunk(
   'voucher/updateVoucher',
-  async ({ id, data }: { id: string; data: Partial<Voucher> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: string; data: UpdateVoucherData }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put(`/vouchers/${id}`, data);
-      
+      const response = await voucherService.updateVoucher(id, data);
+
       // Also update locally
-      await databaseService.upsertVoucher(response.data.data);
-      
-      return response.data.data;
+      await databaseService.upsertVoucher(response.data);
+
+      return response.data;
     } catch (error: any) {
       // Store as pending change if offline
       if (!navigator.onLine) {
@@ -148,7 +146,7 @@ export const deleteVoucher = createAsyncThunk(
   'voucher/deleteVoucher',
   async (voucherId: string, { rejectWithValue }) => {
     try {
-      await apiClient.delete(`/vouchers/${voucherId}`);
+      await voucherService.deleteVoucher(voucherId);
       return voucherId;
     } catch (error: any) {
       // Store as pending change if offline

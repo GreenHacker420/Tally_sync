@@ -1,17 +1,57 @@
 import { apiClient } from './apiClient';
 import { databaseService } from './databaseService';
 import { webSocketService } from './webSocketService';
-import { SyncSession, SyncProgress, SyncStatus, Voucher, InventoryItem } from '../types';
+import { SyncSession, SyncProgress, SyncStatus, Voucher, InventoryItem, SyncConflict } from '../types';
 import { store } from '../store';
-import { setSyncProgress, addSyncSession } from '../store/slices/syncSlice';
+import { setSyncProgress, addSyncSession, setSyncStatus } from '../store/slices/syncSlice';
+import { setNetworkStatus } from '../store/slices/networkSlice';
+import NetInfo from '@react-native-community/netinfo';
+
+export interface ConflictResolutionStrategy {
+  strategy: 'local' | 'remote' | 'merge' | 'manual';
+  mergeFunction?: (local: any, remote: any) => any;
+}
+
+export interface SyncOptions {
+  conflictResolution?: ConflictResolutionStrategy;
+  batchSize?: number;
+  retryAttempts?: number;
+  syncDirection?: 'up' | 'down' | 'both';
+  entities?: string[];
+}
 
 class SyncService {
   private isOnline = false;
   private syncInProgress = false;
   private currentSession: SyncSession | null = null;
+  private conflicts: SyncConflict[] = [];
+  private syncQueue: any[] = [];
+  private retryQueue: any[] = [];
 
   constructor() {
     this.setupWebSocketListeners();
+    this.setupNetworkListener();
+  }
+
+  /**
+   * Setup network connectivity listener
+   */
+  private setupNetworkListener(): void {
+    NetInfo.addEventListener(state => {
+      const wasOnline = this.isOnline;
+      this.isOnline = state.isConnected || false;
+
+      store.dispatch(setNetworkStatus({
+        isOnline: this.isOnline,
+        connectionType: state.type,
+      }));
+
+      // Process pending changes when coming back online
+      if (!wasOnline && this.isOnline) {
+        this.processPendingChanges();
+        this.processRetryQueue();
+      }
+    });
   }
 
   /**
@@ -26,6 +66,10 @@ class SyncService {
       store.dispatch(setSyncProgress(progress));
     });
 
+    webSocketService.on('sync-conflict', (conflict: SyncConflict) => {
+      this.handleSyncConflict(conflict);
+    });
+
     webSocketService.on('connected', () => {
       this.isOnline = true;
       this.processPendingChanges();
@@ -37,15 +81,19 @@ class SyncService {
   }
 
   /**
-   * Start synchronization process
+   * Start synchronization process with enhanced options
    */
-  async startSync(): Promise<{ success: boolean; session?: SyncSession }> {
+  async startSync(options: SyncOptions = {}): Promise<{ success: boolean; session?: SyncSession }> {
     if (this.syncInProgress) {
       throw new Error('Sync already in progress');
     }
 
+    if (!this.isOnline) {
+      throw new Error('Cannot sync while offline');
+    }
+
     this.syncInProgress = true;
-    
+
     const session: SyncSession = {
       id: this.generateSyncId(),
       startTime: new Date().toISOString(),
@@ -54,9 +102,11 @@ class SyncService {
       processedItems: 0,
       errors: [],
       summary: {},
+      conflicts: [],
     };
 
     this.currentSession = session;
+    store.dispatch(setSyncStatus('syncing'));
 
     try {
       // Sync companies first
@@ -366,6 +416,204 @@ class SyncService {
       default:
         console.warn('Unknown sync request action:', data.action);
     }
+  }
+
+  /**
+   * Handle sync conflicts
+   */
+  private async handleSyncConflict(conflict: SyncConflict): Promise<void> {
+    this.conflicts.push(conflict);
+
+    if (this.currentSession) {
+      this.currentSession.conflicts = this.currentSession.conflicts || [];
+      this.currentSession.conflicts.push(conflict);
+    }
+  }
+
+  /**
+   * Resolve sync conflict
+   */
+  async resolveConflict(
+    conflictId: string,
+    resolution: ConflictResolutionStrategy
+  ): Promise<void> {
+    const conflict = this.conflicts.find(c => c.id === conflictId);
+    if (!conflict) {
+      throw new Error('Conflict not found');
+    }
+
+    switch (resolution.strategy) {
+      case 'local':
+        await this.applyLocalData(conflict);
+        break;
+      case 'remote':
+        await this.applyRemoteData(conflict);
+        break;
+      case 'merge':
+        if (resolution.mergeFunction) {
+          const mergedData = resolution.mergeFunction(conflict.localData, conflict.remoteData);
+          await this.applyMergedData(conflict, mergedData);
+        } else {
+          throw new Error('Merge function required for merge strategy');
+        }
+        break;
+      case 'manual':
+        // Keep conflict for manual resolution
+        return;
+    }
+
+    // Remove resolved conflict
+    this.conflicts = this.conflicts.filter(c => c.id !== conflictId);
+  }
+
+  /**
+   * Apply local data to resolve conflict
+   */
+  private async applyLocalData(conflict: SyncConflict): Promise<void> {
+    try {
+      await this.uploadChange({
+        type: conflict.entityType,
+        action: 'update',
+        data: conflict.localData,
+      });
+    } catch (error) {
+      console.error('Failed to apply local data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Apply remote data to resolve conflict
+   */
+  private async applyRemoteData(conflict: SyncConflict): Promise<void> {
+    try {
+      switch (conflict.entityType) {
+        case 'voucher':
+          await databaseService.upsertVoucher(conflict.remoteData);
+          break;
+        case 'item':
+          await databaseService.upsertInventoryItem(conflict.remoteData);
+          break;
+        case 'company':
+          await databaseService.upsertCompany(conflict.remoteData);
+          break;
+      }
+    } catch (error) {
+      console.error('Failed to apply remote data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Apply merged data to resolve conflict
+   */
+  private async applyMergedData(conflict: SyncConflict, mergedData: any): Promise<void> {
+    try {
+      // Update local database
+      switch (conflict.entityType) {
+        case 'voucher':
+          await databaseService.upsertVoucher(mergedData);
+          break;
+        case 'item':
+          await databaseService.upsertInventoryItem(mergedData);
+          break;
+        case 'company':
+          await databaseService.upsertCompany(mergedData);
+          break;
+      }
+
+      // Upload to server
+      await this.uploadChange({
+        type: conflict.entityType,
+        action: 'update',
+        data: mergedData,
+      });
+    } catch (error) {
+      console.error('Failed to apply merged data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Process retry queue
+   */
+  private async processRetryQueue(): Promise<void> {
+    if (!this.isOnline || this.retryQueue.length === 0) {
+      return;
+    }
+
+    const itemsToRetry = [...this.retryQueue];
+    this.retryQueue = [];
+
+    for (const item of itemsToRetry) {
+      try {
+        await this.uploadChange(item);
+        await databaseService.markChangeAsSynced(item.id);
+      } catch (error) {
+        // Add back to retry queue if still failing
+        this.retryQueue.push(item);
+        console.error('Retry failed for item:', item, error);
+      }
+    }
+  }
+
+  /**
+   * Queue change for offline sync
+   */
+  async queueChange(change: any): Promise<void> {
+    await databaseService.addPendingChange(change);
+
+    // Try to sync immediately if online
+    if (this.isOnline && !this.syncInProgress) {
+      try {
+        await this.uploadChange(change);
+        await databaseService.markChangeAsSynced(change.id);
+      } catch (error) {
+        // Will be retried later
+        console.error('Failed to sync change immediately:', error);
+      }
+    }
+  }
+
+  /**
+   * Get pending conflicts
+   */
+  getConflicts(): SyncConflict[] {
+    return [...this.conflicts];
+  }
+
+  /**
+   * Clear all conflicts
+   */
+  clearConflicts(): void {
+    this.conflicts = [];
+  }
+
+  /**
+   * Check if sync is possible
+   */
+  canSync(): boolean {
+    return this.isOnline && !this.syncInProgress;
+  }
+
+  /**
+   * Get sync statistics
+   */
+  async getSyncStatistics(): Promise<{
+    pendingChanges: number;
+    conflicts: number;
+    lastSyncTime?: string;
+    syncHistory: SyncSession[];
+  }> {
+    const pendingChanges = await databaseService.getPendingChangesCount();
+    const syncHistory = await databaseService.getSyncHistory();
+
+    return {
+      pendingChanges,
+      conflicts: this.conflicts.length,
+      lastSyncTime: syncHistory[0]?.endTime,
+      syncHistory: syncHistory.slice(0, 10),
+    };
   }
 
   /**

@@ -19,6 +19,9 @@ import CreateVoucherScreen from '../screens/CreateVoucherScreen';
 import ItemDetailScreen from '../screens/ItemDetailScreen';
 import CreateItemScreen from '../screens/CreateItemScreen';
 import CompanySelectionScreen from '../screens/CompanySelectionScreen';
+import PaymentScreen from '../screens/PaymentScreen';
+import NotificationScreen from '../screens/NotificationScreen';
+import TallyIntegrationScreen from '../screens/TallyIntegrationScreen';
 
 // Types
 import { MainTabParamList, MainStackParamList } from '../types/navigation';
@@ -127,6 +130,9 @@ const MainNavigator: React.FC = () => {
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="CompanySelection" component={CompanySelectionScreen} />
+        <Stack.Screen name="Payment" component={PaymentScreen} />
+        <Stack.Screen name="Notifications" component={NotificationScreen} />
+        <Stack.Screen name="TallyIntegration" component={TallyIntegrationScreen} />
       </Stack.Group>
 
       {/* Detail Screens */}
