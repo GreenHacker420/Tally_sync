@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
+import { QueryProvider } from "@/providers/QueryProvider";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
@@ -30,35 +31,37 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased bg-gray-50">
-        <AuthProvider>
-          <CompanyProvider>
-            {children}
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-                success: {
-                  duration: 3000,
-                  iconTheme: {
-                    primary: '#22c55e',
-                    secondary: '#fff',
+        <QueryProvider>
+          <AuthProvider>
+            <CompanyProvider>
+              {children}
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: '#363636',
+                    color: '#fff',
                   },
-                },
-                error: {
-                  duration: 5000,
-                  iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
+                  success: {
+                    duration: 3000,
+                    iconTheme: {
+                      primary: '#22c55e',
+                      secondary: '#fff',
+                    },
                   },
-                },
-              }}
-            />
-          </CompanyProvider>
-        </AuthProvider>
+                  error: {
+                    duration: 5000,
+                    iconTheme: {
+                      primary: '#ef4444',
+                      secondary: '#fff',
+                    },
+                  },
+                }}
+              />
+            </CompanyProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

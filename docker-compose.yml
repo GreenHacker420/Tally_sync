@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # MongoDB Database
+  # MongoDB Database (Local)
   mongodb:
     image: mongo:6.0
     container_name: finsync360-mongodb
@@ -17,6 +17,7 @@ services:
       - ./deployment/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
       - finsync360-network
+    command: mongod --auth --bind_ip_all
 
   # Redis Cache
   redis:

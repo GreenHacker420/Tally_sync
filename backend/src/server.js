@@ -34,12 +34,35 @@ app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-domain.com'] 
-    : ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
-}));
+// CORS configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = process.env.NODE_ENV === 'production'
+      ? [
+          'https://finsync-frontend-62084a54426d.herokuapp.com',
+          'https://finsync-frontend-nextjs.herokuapp.com',
+          'https://your-domain.com',
+          process.env.FRONTEND_URL,
+          ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [])
+        ].filter(Boolean)
+      : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'];
+
+    if (allowedOrigins.includes(origin) || process.env.CORS_ORIGIN === '*') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['X-Total-Count', 'X-Page-Count']
+};
+
+app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({

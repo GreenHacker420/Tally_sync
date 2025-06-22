@@ -1,0 +1,57 @@
+# Heroku Docker Compose for Local MongoDB
+version: '3.8'
+
+services:
+  # Backend with Local MongoDB
+  web:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.heroku
+    environment:
+      NODE_ENV: production
+      PORT: $PORT
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/finsync360?authSource=admin
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      BCRYPT_ROUNDS: 12
+      LOG_LEVEL: info
+    ports:
+      - "${PORT:-5000}:${PORT:-5000}"
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - app-network
+
+  # Local MongoDB
+  mongodb:
+    image: mongo:6.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: finsync360
+    volumes:
+      - mongodb_data:/data/db
+      - ./deployment/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - app-network
+    command: mongod --auth --bind_ip_all
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -9,8 +9,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoginCredentials } from '@/types';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, loading } = useAuth();
@@ -156,5 +157,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -25,6 +25,7 @@
     "@react-navigation/stack": "^6.3.20",
     "@reduxjs/toolkit": "^2.0.1",
     "axios": "^1.6.2",
+    "axios-mock-adapter": "^2.1.0",
     "react": "18.2.0",
     "react-hook-form": "^7.48.2",
     "react-native": "0.73.2",

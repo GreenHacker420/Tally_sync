@@ -156,27 +156,6 @@ class DatabaseService {
         expiresAt TEXT,
         createdAt TEXT NOT NULL
       )`,
-
-      // Conflicts table
-      `CREATE TABLE IF NOT EXISTS conflicts (
-        id TEXT PRIMARY KEY,
-        entityType TEXT NOT NULL,
-        entityId TEXT NOT NULL,
-        conflictType TEXT NOT NULL,
-        localData TEXT NOT NULL,
-        remoteData TEXT NOT NULL,
-        status TEXT DEFAULT 'pending',
-        createdAt TEXT NOT NULL,
-        resolvedAt TEXT
-      )`,
-
-      // Cache table for offline data
-      `CREATE TABLE IF NOT EXISTS cache (
-        key TEXT PRIMARY KEY,
-        data TEXT NOT NULL,
-        expiresAt TEXT,
-        createdAt TEXT NOT NULL
-      )`,
     ];
 
     for (const table of tables) {

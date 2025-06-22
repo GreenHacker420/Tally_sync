@@ -8,32 +8,32 @@ export const companyService = {
     limit?: number;
     search?: string;
     isActive?: boolean;
-  }): Promise<PaginatedResponse<Company>> {
-    const response = await api.get<PaginatedResponse<Company>>('/companies', { params });
+  }): Promise<ApiResponse<{ companies: Company[] }>> {
+    const response = await api.get<ApiResponse<{ companies: Company[] }>>('/api/companies', { params });
     return response.data;
   },
 
   // Get company by ID
   async getCompany(id: string): Promise<ApiResponse<Company>> {
-    const response = await api.get<ApiResponse<Company>>(`/companies/${id}`);
+    const response = await api.get<ApiResponse<Company>>(`/api/companies/${id}`);
     return response.data;
   },
 
   // Create new company
   async createCompany(companyData: Partial<Company>): Promise<ApiResponse<Company>> {
-    const response = await api.post<ApiResponse<Company>>('/companies', companyData);
+    const response = await api.post<ApiResponse<Company>>('/api/companies', companyData);
     return response.data;
   },
 
   // Update company
   async updateCompany(id: string, companyData: Partial<Company>): Promise<ApiResponse<Company>> {
-    const response = await api.put<ApiResponse<Company>>(`/companies/${id}`, companyData);
+    const response = await api.put<ApiResponse<Company>>(`/api/companies/${id}`, companyData);
     return response.data;
   },
 
   // Delete company
   async deleteCompany(id: string): Promise<ApiResponse> {
-    const response = await api.delete<ApiResponse>(`/companies/${id}`);
+    const response = await api.delete<ApiResponse>(`/api/companies/${id}`);
     return response.data;
   },
 
@@ -41,19 +41,19 @@ export const companyService = {
   async uploadLogo(id: string, file: File): Promise<ApiResponse<Company>> {
     const formData = new FormData();
     formData.append('logo', file);
-    
-    const response = await api.post<ApiResponse<Company>>(`/companies/${id}/logo`, formData, {
+
+    const response = await api.post<ApiResponse<Company>>(`/api/companies/${id}/logo`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    
+
     return response.data;
   },
 
   // Delete company logo
   async deleteLogo(id: string): Promise<ApiResponse<Company>> {
-    const response = await api.delete<ApiResponse<Company>>(`/companies/${id}/logo`);
+    const response = await api.delete<ApiResponse<Company>>(`/api/companies/${id}/logo`);
     return response.data;
   },
 
@@ -63,7 +63,7 @@ export const companyService = {
     role: string;
     permissions?: any;
   }): Promise<ApiResponse<Company>> {
-    const response = await api.post<ApiResponse<Company>>(`/companies/${id}/users`, userData);
+    const response = await api.post<ApiResponse<Company>>(`/api/companies/${id}/users`, userData);
     return response.data;
   },
 
@@ -72,13 +72,13 @@ export const companyService = {
     role: string;
     permissions?: any;
   }): Promise<ApiResponse<Company>> {
-    const response = await api.put<ApiResponse<Company>>(`/companies/${id}/users/${userId}`, roleData);
+    const response = await api.put<ApiResponse<Company>>(`/api/companies/${id}/users/${userId}`, roleData);
     return response.data;
   },
 
   // Remove user from company
   async removeUser(id: string, userId: string): Promise<ApiResponse<Company>> {
-    const response = await api.delete<ApiResponse<Company>>(`/companies/${id}/users/${userId}`);
+    const response = await api.delete<ApiResponse<Company>>(`/api/companies/${id}/users/${userId}`);
     return response.data;
   },
 
@@ -90,7 +90,7 @@ export const companyService = {
     totalItems: number;
     recentActivity: any[];
   }>> {
-    const response = await api.get(`/companies/${id}/stats`);
+    const response = await api.get(`/api/companies/${id}/stats`);
     return response.data;
   },
 
@@ -106,7 +106,7 @@ export const companyService = {
       syncMasters: boolean;
     };
   }): Promise<ApiResponse<Company>> {
-    const response = await api.put<ApiResponse<Company>>(`/companies/${id}/tally-settings`, settings);
+    const response = await api.put<ApiResponse<Company>>(`/api/companies/${id}/tally-settings`, settings);
     return response.data;
   },
 
@@ -119,7 +119,7 @@ export const companyService = {
     status: string;
     message: string;
   }>> {
-    const response = await api.post(`/companies/${id}/sync-tally`, options);
+    const response = await api.post(`/api/companies/${id}/sync-tally`, options);
     return response.data;
   },
 
@@ -130,7 +130,7 @@ export const companyService = {
     message: string;
     errors?: string[];
   }>> {
-    const url = syncId ? `/companies/${id}/sync-status/${syncId}` : `/companies/${id}/sync-status`;
+    const url = syncId ? `/api/companies/${id}/sync-status/${syncId}` : `/api/companies/${id}/sync-status`;
     const response = await api.get(url);
     return response.data;
   },
@@ -140,7 +140,7 @@ export const companyService = {
     plan: string;
     features?: any;
   }): Promise<ApiResponse<Company>> {
-    const response = await api.put<ApiResponse<Company>>(`/companies/${id}/subscription`, subscriptionData);
+    const response = await api.put<ApiResponse<Company>>(`/api/companies/${id}/subscription`, subscriptionData);
     return response.data;
   },
 
@@ -150,7 +150,7 @@ export const companyService = {
     endDate: Date;
     isActive: boolean;
   }>> {
-    const response = await api.get(`/companies/${id}/financial-year`);
+    const response = await api.get(`/api/companies/${id}/financial-year`);
     return response.data;
   },
 
@@ -159,7 +159,7 @@ export const companyService = {
     startDate: Date;
     endDate: Date;
   }): Promise<ApiResponse<Company>> {
-    const response = await api.put<ApiResponse<Company>>(`/companies/${id}/financial-year`, financialYear);
+    const response = await api.put<ApiResponse<Company>>(`/api/companies/${id}/financial-year`, financialYear);
     return response.data;
   },
 

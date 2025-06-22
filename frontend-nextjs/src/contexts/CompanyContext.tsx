@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { companyService } from '@/services/companyService';
 import { Company } from '@/types';
@@ -136,39 +136,40 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     }
   }, [state.currentCompany]);
 
-  const fetchCompanies = async () => {
+  // Set first company as current if no current company is set and companies exist
+  useEffect(() => {
+    if (!state.currentCompany && state.companies.length > 0) {
+      dispatch({ type: 'SET_CURRENT_COMPANY', payload: state.companies[0] });
+    }
+  }, [state.companies, state.currentCompany]);
+
+  const fetchCompanies = useCallback(async () => {
     try {
       dispatch({ type: 'COMPANIES_START' });
       const response = await companyService.getCompanies();
-      dispatch({ type: 'COMPANIES_SUCCESS', payload: response.data });
-      
-      // If no current company is set and companies exist, set the first one
-      if (!state.currentCompany && response.data.length > 0) {
-        dispatch({ type: 'SET_CURRENT_COMPANY', payload: response.data[0] });
-      }
+
+      // Handle backend response structure: { success: true, data: { companies } }
+      const companies = response.data?.companies || [];
+      dispatch({ type: 'COMPANIES_SUCCESS', payload: companies });
+
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to fetch companies';
       dispatch({ type: 'COMPANIES_FAILURE', payload: errorMessage });
       toast.error(errorMessage);
     }
-  };
+  }, []);
 
-  const setCurrentCompany = (company: Company | null) => {
+  const setCurrentCompany = useCallback((company: Company | null) => {
     dispatch({ type: 'SET_CURRENT_COMPANY', payload: company });
-  };
+  }, []);
 
-  const createCompany = async (companyData: Partial<Company>): Promise<Company> => {
+  const createCompany = useCallback(async (companyData: Partial<Company>): Promise<Company> => {
     try {
       const response = await companyService.createCompany(companyData);
       const newCompany = response.data!;
-      
+
       dispatch({ type: 'ADD_COMPANY', payload: newCompany });
-      
-      // Set as current company if it's the first one
-      if (state.companies.length === 0) {
-        dispatch({ type: 'SET_CURRENT_COMPANY', payload: newCompany });
-      }
-      
+
       toast.success('Company created successfully!');
       return newCompany;
     } catch (error: any) {
@@ -176,13 +177,13 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       toast.error(errorMessage);
       throw error;
     }
-  };
+  }, []);
 
-  const updateCompany = async (id: string, companyData: Partial<Company>): Promise<Company> => {
+  const updateCompany = useCallback(async (id: string, companyData: Partial<Company>): Promise<Company> => {
     try {
       const response = await companyService.updateCompany(id, companyData);
       const updatedCompany = response.data!;
-      
+
       dispatch({ type: 'UPDATE_COMPANY', payload: updatedCompany });
       toast.success('Company updated successfully!');
       return updatedCompany;
@@ -191,9 +192,9 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       toast.error(errorMessage);
       throw error;
     }
-  };
+  }, []);
 
-  const deleteCompany = async (id: string): Promise<void> => {
+  const deleteCompany = useCallback(async (id: string): Promise<void> => {
     try {
       await companyService.deleteCompany(id);
       dispatch({ type: 'REMOVE_COMPANY', payload: id });
@@ -203,11 +204,11 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       toast.error(errorMessage);
       throw error;
     }
-  };
+  }, []);
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     dispatch({ type: 'CLEAR_ERROR' });
-  };
+  }, []);
 
   const value: CompanyContextType = {
     companies: state.companies,

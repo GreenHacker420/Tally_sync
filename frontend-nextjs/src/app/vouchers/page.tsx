@@ -1,41 +1,246 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { PlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import { useCompany } from '@/contexts/CompanyContext';
-import Button from '@/components/common/Button';
+import React, { useState } from "react";
+import Link from "next/link";
+import {
+  PlusIcon,
+  FunnelIcon,
+  EyeIcon,
+  PencilIcon,
+  TrashIcon,
+  DocumentArrowDownIcon,
+  ArrowPathIcon
+} from "@heroicons/react/24/outline";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { DataTable } from "@/components/ui/DataTable";
+import { Badge } from "@/components/ui/Badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
+import Button from "@/components/common/Button";
+import Input from "@/components/common/Input";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import { ConfirmationModal, FormModal } from "@/components/modals";
+import { VoucherForm } from "@/components/forms";
+import { useVouchers, useDeleteVoucher, useGenerateVoucherPDF, useSyncVoucherWithTally } from "@/hooks/useVouchers";
+import { useCompany } from "@/contexts/CompanyContext";
+import { Voucher, TableColumn } from "@/types";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default function VouchersPage() {
   const { currentCompany } = useCompany();
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [filters, setFilters] = useState({
+    voucherType: "",
+    status: "",
+    search: "",
+    dateFrom: "",
+    dateTo: "",
+  });
+
+  // Modal states
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Fetch vouchers
+  const { data: vouchersData, isLoading } = useVouchers(page, limit, filters);
+
+  // Mutations
+  const deleteVoucherMutation = useDeleteVoucher();
+  const generatePDFMutation = useGenerateVoucherPDF();
+  const syncTallyMutation = useSyncVoucherWithTally();
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setPage(1); // Reset to first page when filtering
+  };
+
+  const handleEdit = (voucher: Voucher) => {
+    setSelectedVoucher(voucher);
+    setShowEditModal(true);
+  };
+
+  const handleDelete = (voucher: Voucher) => {
+    setSelectedVoucher(voucher);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedVoucher) {
+      await deleteVoucherMutation.mutateAsync(selectedVoucher._id);
+      setSelectedVoucher(null);
+    }
+  };
+
+  const handleGeneratePDF = async (voucher: Voucher) => {
+    await generatePDFMutation.mutateAsync(voucher._id);
+  };
+
+  const handleSyncTally = async (voucher: Voucher) => {
+    await syncTallyMutation.mutateAsync(voucher._id);
+  };
 
   if (!currentCompany) {
     return (
       <div className="text-center py-12">
-        <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No company selected</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          Please select a company to view vouchers.
-        </p>
-        <div className="mt-6">
-          <Link href="/companies">
-            <Button>Select Company</Button>
-          </Link>
-        </div>
+        <h2 className="text-xl font-semibold text-gray-900">No Company Selected</h2>
+        <p className="mt-2 text-gray-600">Please select a company to view vouchers.</p>
       </div>
     );
   }
 
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      draft: "secondary" as const,
+      pending: "warning" as const,
+      approved: "success" as const,
+      cancelled: "error" as const,
+      paid: "success" as const,
+      partially_paid: "warning" as const,
+    };
+
+    return (
+      <Badge variant={variants[status as keyof typeof variants] || "secondary"}>
+        {status.replace("_", " ").toUpperCase()}
+      </Badge>
+    );
+  };
+
+  const getVoucherTypeBadge = (type: string) => {
+    const colors = {
+      sales: "success" as const,
+      purchase: "primary" as const,
+      receipt: "success" as const,
+      payment: "warning" as const,
+      contra: "secondary" as const,
+      journal: "secondary" as const,
+      debit_note: "error" as const,
+      credit_note: "success" as const,
+    };
+
+    return (
+      <Badge variant={colors[type as keyof typeof colors] || "secondary"}>
+        {type.replace("_", " ").toUpperCase()}
+      </Badge>
+    );
+  };
+
+  const columns: TableColumn<Voucher>[] = [
+    {
+      key: "voucherNumber",
+      title: "Voucher No.",
+      sorter: true,
+      render: (_, voucher) => (
+        <div className="font-medium text-gray-900">
+          {voucher.voucherNumber}
+        </div>
+      ),
+    },
+    {
+      key: "voucherType",
+      title: "Type",
+      render: (_, voucher) => getVoucherTypeBadge(voucher.voucherType),
+    },
+    {
+      key: "date",
+      title: "Date",
+      sorter: true,
+      render: (_, voucher) => formatDate(voucher.date),
+    },
+    {
+      key: "party",
+      title: "Party",
+      render: (_, voucher) => (
+        <div className="text-gray-900">
+          {typeof voucher.party === "string" ? voucher.party : voucher.party?.name || "-"}
+        </div>
+      ),
+    },
+    {
+      key: "totals",
+      title: "Amount",
+      align: "right",
+      render: (_, voucher) => (
+        <div className="font-medium text-gray-900">
+          {formatCurrency(voucher.totals?.grandTotal || 0)}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      title: "Status",
+      render: (_, voucher) => getStatusBadge(voucher.status),
+    },
+    {
+      key: "tallySync",
+      title: "Tally",
+      render: (_, voucher) => (
+        <div className="flex items-center">
+          {voucher.tallySync?.synced ? (
+            <Badge variant="success" size="sm">Synced</Badge>
+          ) : (
+            <Badge variant="outline" size="sm">Not Synced</Badge>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "actions",
+      title: "Actions",
+      render: (_, voucher) => (
+        <div className="flex items-center space-x-2">
+          <Link href={`/vouchers/${voucher._id}`}>
+            <Button variant="ghost" size="sm">
+              <EyeIcon className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Button variant="ghost" size="sm" onClick={() => handleEdit(voucher)}>
+            <PencilIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleGeneratePDF(voucher)}
+            loading={generatePDFMutation.isPending}
+          >
+            <DocumentArrowDownIcon className="h-4 w-4" />
+          </Button>
+          {!voucher.tallySync?.synced && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleSyncTally(voucher)}
+              loading={syncTallyMutation.isPending}
+            >
+              <ArrowPathIcon className="h-4 w-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => handleDelete(voucher)}>
+            <TrashIcon className="h-4 w-4 text-error-500" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { title: "Vouchers" },
+        ]}
+      />
+
+      {/* Header */}
+      <div className="sm:flex sm:items-center sm:justify-between">
+        <div>
           <h1 className="text-2xl font-bold text-gray-900">Vouchers</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Manage sales, purchase, payment, and receipt vouchers for {currentCompany.name}.
+          <p className="mt-1 text-sm text-gray-600">
+            Manage your vouchers and transactions
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <div className="mt-4 sm:mt-0">
           <Link href="/vouchers/new">
             <Button>
               <PlusIcon className="h-4 w-4 mr-2" />
@@ -45,166 +250,130 @@ export default function VouchersPage() {
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-success-100 rounded-md flex items-center justify-center">
-                  <span className="text-success-600 text-sm font-medium">S</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Sales</dt>
-                  <dd className="text-lg font-medium text-gray-900">Coming soon</dd>
-                </dl>
-              </div>
-            </div>
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FunnelIcon className="h-5 w-5 mr-2" />
+            Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <Input
+              placeholder="Search vouchers..."
+              value={filters.search}
+              onChange={(e) => handleFilterChange("search", e.target.value)}
+            />
+
+            <Select
+              value={filters.voucherType}
+              onValueChange={(value) => handleFilterChange("voucherType", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="sales">Sales</SelectItem>
+                <SelectItem value="purchase">Purchase</SelectItem>
+                <SelectItem value="receipt">Receipt</SelectItem>
+                <SelectItem value="payment">Payment</SelectItem>
+                <SelectItem value="contra">Contra</SelectItem>
+                <SelectItem value="journal">Journal</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filters.status}
+              onValueChange={(value) => handleFilterChange("status", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Input
+              type="date"
+              placeholder="From Date"
+              value={filters.dateFrom}
+              onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+            />
+
+            <Input
+              type="date"
+              placeholder="To Date"
+              value={filters.dateTo}
+              onChange={(e) => handleFilterChange("dateTo", e.target.value)}
+            />
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-warning-100 rounded-md flex items-center justify-center">
-                  <span className="text-warning-600 text-sm font-medium">P</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Purchase</dt>
-                  <dd className="text-lg font-medium text-gray-900">Coming soon</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Data Table */}
+      <Card>
+        <CardContent className="p-0">
+          <DataTable
+            data={vouchersData?.data || []}
+            columns={columns}
+            loading={isLoading}
+            pagination={
+              vouchersData?.pagination
+                ? {
+                    current: page,
+                    pageSize: limit,
+                    total: vouchersData.pagination.total,
+                    onChange: (newPage) => setPage(newPage),
+                  }
+                : undefined
+            }
+            searchable={false} // We have custom search
+            emptyMessage="No vouchers found"
+          />
+        </CardContent>
+      </Card>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-primary-100 rounded-md flex items-center justify-center">
-                  <span className="text-primary-600 text-sm font-medium">R</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Receipts</dt>
-                  <dd className="text-lg font-medium text-gray-900">Coming soon</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Edit Modal */}
+      <FormModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        title="Edit Voucher"
+        size="xl"
+      >
+        {selectedVoucher && (
+          <VoucherForm
+            voucher={selectedVoucher}
+            onSuccess={() => {
+              setShowEditModal(false);
+              setSelectedVoucher(null);
+            }}
+            onCancel={() => {
+              setShowEditModal(false);
+              setSelectedVoucher(null);
+            }}
+          />
+        )}
+      </FormModal>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-error-100 rounded-md flex items-center justify-center">
-                  <span className="text-error-600 text-sm font-medium">P</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Payments</dt>
-                  <dd className="text-lg font-medium text-gray-900">Coming soon</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Voucher Types */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Create New Voucher
-          </h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Link href="/vouchers/new?type=sales">
-              <div className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500 cursor-pointer">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-success-100 rounded-lg flex items-center justify-center">
-                    <span className="text-success-600 font-medium">S</span>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="absolute inset-0" aria-hidden="true" />
-                  <p className="text-sm font-medium text-gray-900">Sales Invoice</p>
-                  <p className="text-sm text-gray-500 truncate">Create sales voucher</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/vouchers/new?type=purchase">
-              <div className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500 cursor-pointer">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-warning-100 rounded-lg flex items-center justify-center">
-                    <span className="text-warning-600 font-medium">P</span>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="absolute inset-0" aria-hidden="true" />
-                  <p className="text-sm font-medium text-gray-900">Purchase Invoice</p>
-                  <p className="text-sm text-gray-500 truncate">Create purchase voucher</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/vouchers/new?type=receipt">
-              <div className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500 cursor-pointer">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                    <span className="text-primary-600 font-medium">R</span>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="absolute inset-0" aria-hidden="true" />
-                  <p className="text-sm font-medium text-gray-900">Receipt</p>
-                  <p className="text-sm text-gray-500 truncate">Record money received</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/vouchers/new?type=payment">
-              <div className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500 cursor-pointer">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-error-100 rounded-lg flex items-center justify-center">
-                    <span className="text-error-600 font-medium">P</span>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="absolute inset-0" aria-hidden="true" />
-                  <p className="text-sm font-medium text-gray-900">Payment</p>
-                  <p className="text-sm text-gray-500 truncate">Record money paid</p>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Vouchers */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Recent Vouchers
-          </h3>
-          <div className="text-center py-8">
-            <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No vouchers yet</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Get started by creating your first voucher.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        title="Delete Voucher"
+        description={`Are you sure you want to delete voucher ${selectedVoucher?.voucherNumber}? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        onConfirm={confirmDelete}
+        loading={deleteVoucherMutation.isPending}
+      />
     </div>
   );
 }

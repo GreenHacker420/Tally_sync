@@ -21,7 +21,10 @@
     "demo:user": "node scripts/create-demo-user.js",
     "demo:users": "node scripts/create-demo-users.js",
     "demo:data": "node scripts/create-demo-data.js",
-    "demo:all": "npm run demo:users && npm run demo:data"
+    "demo:all": "npm run demo:users && npm run demo:data",
+    "create:admin": "node scripts/create-admin-users.js",
+    "create:single-admin": "node scripts/create-single-admin.js",
+    "setup:production": "npm run create:admin"
   },
   "dependencies": {
     "axios": "^1.6.2",

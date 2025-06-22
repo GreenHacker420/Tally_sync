@@ -55,10 +55,23 @@ export const initializeServices = async (): Promise<void> => {
 export const cleanupServices = async (): Promise<void> => {
   try {
     console.log('Cleaning up services...');
-    
+
+    // Cleanup real-time manager
+    realTimeManager.cleanup();
+    console.log('✓ Real-time manager cleaned up');
+
+    // Cleanup collaborative editing
+    collaborativeEditingService.cleanup();
+    console.log('✓ Collaborative editing cleaned up');
+
+    // Disconnect WebSocket
     webSocketService.disconnect();
+    console.log('✓ WebSocket disconnected');
+
+    // Close database
     await databaseService.close();
-    
+    console.log('✓ Database closed');
+
     console.log('Services cleaned up successfully');
   } catch (error) {
     console.error('Failed to cleanup services:', error);
