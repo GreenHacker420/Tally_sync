@@ -29,5 +29,8 @@ python-dotenv==1.0.0
 python-dateutil==2.8.2
 click==8.1.7
 
+# Task scheduling
+apscheduler==3.10.4
+
 # Production deployment
 gunicorn==21.2.0
