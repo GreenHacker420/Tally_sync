@@ -14,8 +14,6 @@ const CompanySchema = new mongoose.Schema({
   },
   gstin: {
     type: String,
-    unique: true,
-    sparse: true,
     match: [/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Please add a valid GSTIN']
   },
   pan: {
@@ -218,7 +216,7 @@ const CompanySchema = new mongoose.Schema({
 });
 
 // Indexes
-CompanySchema.index({ gstin: 1 });
+CompanySchema.index({ gstin: 1 }, { unique: true, sparse: true });
 CompanySchema.index({ createdBy: 1 });
 CompanySchema.index({ isActive: 1 });
 CompanySchema.index({ 'users.user': 1 });

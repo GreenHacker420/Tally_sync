@@ -13,7 +13,6 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, 'Please add an email'],
-    unique: true,
     lowercase: true,
     match: [
       /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
@@ -125,8 +124,8 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Indexes
-UserSchema.index({ email: 1 });
-UserSchema.index({ phone: 1 });
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ phone: 1 }, { unique: true });
 UserSchema.index({ companies: 1 });
 UserSchema.index({ isActive: 1 });
 

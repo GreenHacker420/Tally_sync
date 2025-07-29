@@ -3,8 +3,14 @@ const logger = require('../utils/logger');
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.NODE_ENV === 'test' 
-      ? process.env.MONGODB_TEST_URI 
+    // Check if we're in development mode without MongoDB
+    if (process.env.NODE_ENV === 'development' && process.env.SKIP_MONGODB === 'true') {
+      logger.info('Skipping MongoDB connection in development mode');
+      return { connection: { host: 'localhost (skipped)' } };
+    }
+
+    const mongoURI = process.env.NODE_ENV === 'test'
+      ? process.env.MONGODB_TEST_URI
       : process.env.MONGODB_URI;
 
     if (!mongoURI) {
@@ -45,6 +51,13 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     logger.error('Database connection failed:', error);
+
+    // In development mode, continue without database
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Continuing in development mode without database...');
+      return { connection: { host: 'localhost (failed)' } };
+    }
+
     process.exit(1);
   }
 };

@@ -76,13 +76,7 @@ jest.mock('react-native-config', () => ({
   WS_BASE_URL: 'ws://localhost:5000',
 }));
 
-// Mock @env
-jest.mock('@env', () => ({
-  API_BASE_URL: 'http://localhost:5000/api',
-  WS_BASE_URL: 'ws://localhost:5000',
-  ENABLE_BIOMETRIC_AUTH: 'true',
-  ENABLE_OFFLINE_MODE: 'true',
-}));
+// @env is mocked via moduleNameMapper in jest.config.js
 
 // Global test utilities
 global.fetch = jest.fn();

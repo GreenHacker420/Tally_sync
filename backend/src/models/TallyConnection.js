@@ -8,8 +8,7 @@ const TallyConnectionSchema = new mongoose.Schema({
   },
   agentId: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   agentVersion: {
     type: String,

@@ -9,8 +9,9 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(react-native|@react-native|react-native-paper|react-native-vector-icons|react-native-sqlite-storage|react-native-encrypted-storage|@react-native-async-storage|@react-native-community|react-native-biometrics)/)',
   ],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@env$': '<rootDir>/__mocks__/@env.js',
   },
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
@@ -27,5 +28,5 @@ module.exports = {
       statements: 80,
     },
   },
-  testEnvironment: 'jsdom',
+  testEnvironment: 'node',
 };

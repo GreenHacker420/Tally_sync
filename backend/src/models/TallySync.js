@@ -20,8 +20,7 @@ const TallySyncSchema = new mongoose.Schema({
     required: true
   },
   tallyGuid: {
-    type: String,
-    sparse: true
+    type: String
   },
   syncDirection: {
     type: String,

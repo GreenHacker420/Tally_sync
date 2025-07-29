@@ -1,0 +1,17 @@
+module.exports = {
+  API_BASE_URL: 'http://localhost:3001/api',
+  ML_SERVICE_URL: 'http://localhost:8000/api/v1',
+  WEBSOCKET_URL: 'ws://localhost:3001',
+  TALLY_AGENT_URL: 'ws://localhost:3001/tally-agent',
+  NODE_ENV: 'test',
+  APP_NAME: 'FinSync360',
+  APP_VERSION: '1.0.0',
+  JWT_SECRET: 'test-jwt-secret',
+  ENCRYPTION_KEY: 'test-encryption-key',
+  ENABLE_BIOMETRICS: 'true',
+  ENABLE_OFFLINE_MODE: 'true',
+  ENABLE_REAL_TIME_SYNC: 'true',
+  ENABLE_ML_FEATURES: 'true',
+  DEBUG_MODE: 'true',
+  ENABLE_NETWORK_LOGGING: 'false',
+};
