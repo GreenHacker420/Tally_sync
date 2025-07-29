@@ -258,6 +258,107 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
+// @desc    Get user profile (alias for /me)
+// @route   GET /api/auth/profile
+// @access  Private
+router.get('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate('companies', 'name isActive');
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified,
+          lastLogin: user.lastLogin,
+          companies: user.companies,
+          preferences: user.preferences
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Get user profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+router.put('/profile', [
+  body('name').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
+  body('phone').optional().isMobilePhone().withMessage('Please provide a valid phone number'),
+  body('preferences').optional().isObject().withMessage('Preferences must be an object')
+], protect, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const allowedFields = ['name', 'phone', 'preferences'];
+    const updateData = {};
+
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    });
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password').populate('companies', 'name isActive');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    logger.info(`User profile updated: ${user.email}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified,
+          lastLogin: user.lastLogin,
+          companies: user.companies,
+          preferences: user.preferences
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Private
