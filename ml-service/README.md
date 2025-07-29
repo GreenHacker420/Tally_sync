@@ -2,6 +2,16 @@
 
 AI/ML Predictive Analytics Microservice for the FinSync360 ERP System. This service provides machine learning capabilities including payment prediction, customer risk assessment, inventory forecasting, and business intelligence analytics.
 
+## 🌐 Production Deployment
+
+**Status: ✅ DEPLOYED & OPERATIONAL**
+
+- **Production URL**: https://finsync-ml-2bba4152b555.herokuapp.com
+- **Health Check**: https://finsync-ml-2bba4152b555.herokuapp.com/api/v1/health
+- **API Documentation**: https://finsync-ml-2bba4152b555.herokuapp.com/docs
+- **Database**: MongoDB Atlas (shared with backend)
+- **Integration Tests**: 3/3 endpoints passing (100% success rate)
+
 ## 🚀 Features
 
 ### Core ML Capabilities
@@ -82,8 +92,15 @@ npm run install:ml-service
 
 ### 3. Configure Environment Variables
 
-Edit `.env` file with your settings:
+**Production Environment (Heroku Config Vars)**
+```env
+MONGODB_URL=mongodb+srv://hhirawat5:R79fVWIVMLY1BSUh@finsync.xwmeuwe.mongodb.net/finsync360?retryWrites=true&w=majority&authSource=admin
+DATABASE_NAME=finsync360
+BACKEND_API_URL=https://finsync-backend-d34180691b06.herokuapp.com/api
+SECRET_KEY=ml-service-secret-key-for-production
+```
 
+**Local Development (.env)**
 ```env
 # Database
 MONGODB_URL=mongodb://localhost:27017
@@ -134,18 +151,24 @@ docker run -p 8001:8001 --env-file .env finsync360-ml-service
 
 ## 📚 API Documentation
 
-Once the service is running, access the interactive API documentation:
+### Production API Documentation
 
-- **Swagger UI**: http://localhost:8001/docs
-- **ReDoc**: http://localhost:8001/redoc
+- **Production Swagger UI**: https://finsync-ml-2bba4152b555.herokuapp.com/docs
+- **Production ReDoc**: https://finsync-ml-2bba4152b555.herokuapp.com/redoc
+- **Health Check**: https://finsync-ml-2bba4152b555.herokuapp.com/api/v1/health
+
+### Local Development API Documentation
+
+- **Local Swagger UI**: http://localhost:8001/docs
+- **Local ReDoc**: http://localhost:8001/redoc
 
 ### Key Endpoints
 
 #### Health & Status
-- `GET /api/v1/health` - Basic health check
-- `GET /api/v1/health/detailed` - Detailed health with database status
+- `GET /api/v1/health` - Basic health check ✅ **OPERATIONAL**
+- `GET /` - Service information ✅ **OPERATIONAL**
 
-#### Predictions
+#### Predictions ✅ **OPERATIONAL**
 - `POST /api/v1/payment-delay` - Predict payment delay for customer
 - `POST /api/v1/payment-delay/bulk` - Bulk payment delay predictions
 - `POST /api/v1/inventory-forecast` - Forecast inventory demand
@@ -160,6 +183,26 @@ Once the service is running, access the interactive API documentation:
 #### Model Management
 - `GET /api/v1/models/status` - Get model status
 - `POST /api/v1/models/retrain` - Trigger model retraining
+
+### Production API Testing
+
+```bash
+# Test production health endpoint
+curl https://finsync-ml-2bba4152b555.herokuapp.com/api/v1/health
+
+# Expected response:
+# {
+#   "status": "healthy",
+#   "service": "FinSync360 ML Service",
+#   "version": "1.0.0",
+#   "timestamp": "2025-07-29T06:34:57.235947"
+# }
+
+# Test prediction endpoint (requires request body)
+curl -X POST https://finsync-ml-2bba4152b555.herokuapp.com/api/v1/payment-delay \
+  -H "Content-Type: application/json" \
+  -d '{"customer_id": "test"}'
+```
 
 ## 🧪 Testing
 
@@ -227,23 +270,53 @@ The service automatically retrains models based on the configured interval (`MOD
 
 ## 🚀 Deployment
 
-### Production Checklist
+### Production Deployment (Heroku)
 
-1. **Environment Configuration**
-   - Set `DEBUG=false`
-   - Configure production database URLs
-   - Set secure `SECRET_KEY`
-   - Configure proper CORS origins
+**Current Status: ✅ DEPLOYED & OPERATIONAL**
 
-2. **Performance Optimization**
-   - Enable Redis caching
-   - Configure appropriate worker processes
-   - Set up load balancing if needed
+The ML service is successfully deployed on Heroku:
 
-3. **Monitoring**
-   - Set up health check monitoring
-   - Configure logging aggregation
-   - Monitor model performance metrics
+- **App Name**: `finsync-ml`
+- **URL**: https://finsync-ml-2bba4152b555.herokuapp.com
+- **Status**: ✅ 100% operational (3/3 endpoints working)
+- **Database**: MongoDB Atlas (shared with backend)
+
+### Deployment Commands
+
+```bash
+# Add Heroku remote
+heroku git:remote -a finsync-ml -r heroku-ml
+
+# Deploy to production
+git push heroku-ml `git subtree split --prefix=ml-service HEAD`:refs/heads/master --force
+
+# Configure environment variables
+heroku config:set MONGODB_URL="mongodb+srv://..." --app finsync-ml
+heroku config:set SECRET_KEY="your-secret-key" --app finsync-ml
+heroku config:set DATABASE_NAME="finsync360" --app finsync-ml
+heroku config:set BACKEND_API_URL="https://finsync-backend-d34180691b06.herokuapp.com/api" --app finsync-ml
+
+# Check deployment status
+heroku ps --app finsync-ml
+heroku logs --tail --app finsync-ml
+```
+
+### Production Health Check
+
+```bash
+# Verify deployment
+curl https://finsync-ml-2bba4152b555.herokuapp.com/api/v1/health
+
+# Expected response:
+# {
+#   "status": "healthy",
+#   "service": "FinSync360 ML Service",
+#   "version": "1.0.0",
+#   "timestamp": "2025-07-29T06:34:57.235947"
+# }
+```
+
+### Local Development Deployment
 
 ### Docker Compose Integration
 

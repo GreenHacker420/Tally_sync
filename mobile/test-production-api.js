@@ -53,6 +53,18 @@ async function testProductionAPI() {
       url: `${PRODUCTION_API_BASE_URL}/auth/profile`,
       method: 'GET',
       expectedStatus: [401], // Should be unauthorized without token
+    },
+    {
+      name: 'User Me Endpoint (Unauthorized)',
+      url: `${PRODUCTION_API_BASE_URL}/auth/me`,
+      method: 'GET',
+      expectedStatus: [401], // Should be unauthorized without token
+    },
+    {
+      name: 'Health Check Endpoint',
+      url: `${PRODUCTION_API_BASE_URL.replace('/api', '')}/health`,
+      method: 'GET',
+      expectedStatus: [200], // Should return health status
     }
   ];
 

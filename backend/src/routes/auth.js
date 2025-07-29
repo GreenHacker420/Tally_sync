@@ -177,7 +177,12 @@ router.post('/login', [
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      await user.incLoginAttempts();
+      try {
+        await user.incLoginAttempts();
+      } catch (error) {
+        logger.error('Error incrementing login attempts:', error);
+        // Continue with the response even if incrementing fails
+      }
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
@@ -186,7 +191,12 @@ router.post('/login', [
 
     // Reset login attempts on successful login
     if (user.loginAttempts > 0) {
-      await user.resetLoginAttempts();
+      try {
+        await user.resetLoginAttempts();
+      } catch (error) {
+        logger.error('Error resetting login attempts:', error);
+        // Continue with successful login even if reset fails
+      }
     }
 
     // Update last login
