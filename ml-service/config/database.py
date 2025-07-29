@@ -63,7 +63,7 @@ async def close_database_connection():
 
 async def create_indexes():
     """Create database indexes for optimal performance"""
-    if not _database:
+    if _database is None:
         return
     
     try:
