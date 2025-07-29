@@ -51,7 +51,7 @@ class InventoryForecastResponse(BaseModel):
 
 class RiskAssessmentRequest(BaseModel):
     customer_id: str
-    assessment_type: str = Field(default="credit", regex="^(credit|payment|overall)$")
+    assessment_type: str = Field(default="credit", pattern="^(credit|payment|overall)$")
 
 class RiskAssessmentResponse(BaseModel):
     customer_id: str
