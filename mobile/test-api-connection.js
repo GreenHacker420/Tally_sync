@@ -6,7 +6,7 @@
 
 const axios = require('axios');
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://finsync-backend-d34180691b06.herokuapp.com/api';
 
 async function testAPIConnection() {
   console.log('🔍 Testing FinSync360 Mobile App API Connection...\n');
