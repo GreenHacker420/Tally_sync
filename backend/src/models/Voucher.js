@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const mongoosePaginate = require('mongoose-paginate-v2');
+import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 const VoucherSchema = new mongoose.Schema({
   company: {
@@ -378,4 +378,4 @@ VoucherSchema.methods.generateLedgerEntries = function() {
 // Add pagination plugin
 VoucherSchema.plugin(mongoosePaginate);
 
-module.exports = mongoose.model('Voucher', VoucherSchema);
+export default mongoose.model('Voucher', VoucherSchema);

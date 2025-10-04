@@ -1,14 +1,14 @@
-const express = require('express');
-const { protect, checkCompanyAccess } = require('../middleware/auth');
-const { body } = require('express-validator');
-const {
+import express from 'express';
+import { protect, checkCompanyAccess } from '../middleware/auth.js';
+import { body } from 'express-validator';
+import {
   getItems,
   getItem,
   createItem,
   updateItem,
   deleteItem,
   uploadFiles
-} = require('../controllers/inventoryController');
+} from '../controllers/inventoryController.js';
 
 const router = express.Router();
 
@@ -88,4 +88,4 @@ router.get('/', checkCompanyAccess, async (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;

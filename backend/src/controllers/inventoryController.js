@@ -1,9 +1,9 @@
-const Item = require('../models/Item');
-const Company = require('../models/Company');
-const { validationResult } = require('express-validator');
-const logger = require('../utils/logger');
-const multer = require('multer');
-const path = require('path');
+import Item from '../models/Item.js';
+import Company from '../models/Company.js';
+import { validationResult } from 'express-validator';
+import logger from '../utils/logger.js';
+import multer from 'multer';
+import path from 'path';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -46,7 +46,7 @@ const upload = multer({
 // @desc    Get all items
 // @route   GET /api/inventory/items
 // @access  Private
-exports.getItems = async (req, res) => {
+export const getItems = async (req, res) => {
   try {
     const {
       page = 1,
@@ -114,7 +114,7 @@ exports.getItems = async (req, res) => {
 // @desc    Get single item
 // @route   GET /api/inventory/items/:id
 // @access  Private
-exports.getItem = async (req, res) => {
+export const getItem = async (req, res) => {
   try {
     const item = await Item.findOne({
       _id: req.params.id,
@@ -148,7 +148,7 @@ exports.getItem = async (req, res) => {
 // @desc    Create item
 // @route   POST /api/inventory/items
 // @access  Private
-exports.createItem = async (req, res) => {
+export const createItem = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -218,7 +218,7 @@ exports.createItem = async (req, res) => {
 // @desc    Update item
 // @route   PUT /api/inventory/items/:id
 // @access  Private
-exports.updateItem = async (req, res) => {
+export const updateItem = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -303,7 +303,7 @@ exports.updateItem = async (req, res) => {
 // @desc    Delete item
 // @route   DELETE /api/inventory/items/:id
 // @access  Private
-exports.deleteItem = async (req, res) => {
+export const deleteItem = async (req, res) => {
   try {
     const item = await Item.findOne({
       _id: req.params.id,
@@ -338,7 +338,7 @@ exports.deleteItem = async (req, res) => {
 // @desc    Upload item images/documents
 // @route   POST /api/inventory/items/:id/upload
 // @access  Private
-exports.uploadFiles = [
+export const uploadFiles = [
   upload.fields([
     { name: 'images', maxCount: 5 },
     { name: 'documents', maxCount: 3 }

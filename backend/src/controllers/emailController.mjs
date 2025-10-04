@@ -1,16 +1,16 @@
-const { validationResult } = require('express-validator');
-const logger = require('../utils/logger');
-const EmailService = require('../services/emailService');
-const Voucher = require('../models/Voucher');
-const Party = require('../models/Party');
-const User = require('../models/User');
-const PDFService = require('../services/pdfService');
-const moment = require('moment');
+import { validationResult } from 'express-validator';
+import logger from '../utils/logger.js';
+import EmailService from '../services/emailService.js';
+import Voucher from '../models/Voucher.js';
+import Party from '../models/Party.js';
+import User from '../models/User.js';
+import PDFService from '../services/pdfService.js';
+import moment from 'moment';
 
 // @desc    Send email with template
 // @route   POST /api/emails/send
 // @access  Private
-exports.sendEmail = async (req, res) => {
+export const sendEmail = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -70,7 +70,7 @@ exports.sendEmail = async (req, res) => {
 // @desc    Send invoice notification
 // @route   POST /api/emails/invoice-notification
 // @access  Private
-exports.sendInvoiceNotification = async (req, res) => {
+export const sendInvoiceNotification = async (req, res) => {
   try {
     const { voucherId, includePDF = true, customMessage } = req.body;
 
@@ -157,7 +157,7 @@ exports.sendInvoiceNotification = async (req, res) => {
 // @desc    Send payment reminder
 // @route   POST /api/emails/payment-reminder
 // @access  Private
-exports.sendPaymentReminder = async (req, res) => {
+export const sendPaymentReminder = async (req, res) => {
   try {
     const { voucherId, customMessage } = req.body;
 
@@ -243,7 +243,7 @@ exports.sendPaymentReminder = async (req, res) => {
 // @desc    Send bulk payment reminders
 // @route   POST /api/emails/bulk-payment-reminders
 // @access  Private
-exports.sendBulkPaymentReminders = async (req, res) => {
+export const sendBulkPaymentReminders = async (req, res) => {
   try {
     const { voucherIds, customMessage } = req.body;
 
@@ -333,7 +333,7 @@ exports.sendBulkPaymentReminders = async (req, res) => {
 // @desc    Preview email template
 // @route   GET /api/emails/preview/:template
 // @access  Private
-exports.previewTemplate = async (req, res) => {
+export const previewTemplate = async (req, res) => { 
   try {
     const { template } = req.params;
     const { data = {} } = req.query;
@@ -409,7 +409,7 @@ exports.previewTemplate = async (req, res) => {
 // @desc    Get email queue status
 // @route   GET /api/emails/queue-status
 // @access  Private
-exports.getQueueStatus = async (req, res) => {
+export const getQueueStatus = async (req, res) => {
   try {
     const status = EmailService.getQueueStatus();
 
@@ -429,7 +429,7 @@ exports.getQueueStatus = async (req, res) => {
 // @desc    Get email delivery status
 // @route   GET /api/emails/delivery-status/:messageId
 // @access  Private
-exports.getDeliveryStatus = async (req, res) => {
+export const getDeliveryStatus = async (req, res) => {
   try {
     const { messageId } = req.params;
     const status = EmailService.getDeliveryStatus(messageId);

@@ -1,9 +1,9 @@
-const axios = require('axios');
-const net = require('net');
-const WebSocket = require('ws');
-const winston = require('winston');
-const tallyXmlService = require('./tallyXmlService');
-const TallyConnection = require('../models/TallyConnection');
+import axios from 'axios';
+import net from 'net';
+import WebSocket from 'ws';
+import winston from 'winston';
+import tallyXmlService from './tallyXmlService.js';
+import TallyConnection from '../models/TallyConnection.js';
 
 class TallyCommunicationService {
   constructor() {
@@ -511,4 +511,4 @@ class TallyCommunicationService {
   }
 }
 
-module.exports = new TallyCommunicationService();
+export default new TallyCommunicationService();

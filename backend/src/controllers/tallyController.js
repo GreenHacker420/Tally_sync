@@ -1,15 +1,15 @@
-const asyncHandler = require('../middleware/async');
-const ErrorResponse = require('../utils/errorResponse');
-const tallySyncService = require('../services/tallySyncService');
-const tallyCommunicationService = require('../services/tallyCommunicationService');
-const TallySync = require('../models/TallySync');
-const TallyConnection = require('../models/TallyConnection');
-const Company = require('../models/Company');
+import asyncHandler from '../middleware/async.js';
+import ErrorResponse from '../utils/errorResponse.js';
+import tallySyncService from '../services/tallySyncService.js';
+import tallyCommunicationService from '../services/tallyCommunicationService.js';
+import TallySync from '../models/TallySync.js';
+import TallyConnection from '../models/TallyConnection.js';
+import Company from '../models/Company.js';
 
 // @desc    Get Tally sync status for company
 // @route   GET /api/tally/sync-status/:companyId
 // @access  Private
-exports.getSyncStatus = asyncHandler(async (req, res, next) => {
+export const getSyncStatus = asyncHandler(async (req, res, next) => {
   const { companyId } = req.params;
 
   // Check if user has access to company
@@ -65,7 +65,7 @@ exports.getSyncStatus = asyncHandler(async (req, res, next) => {
 // @desc    Sync entity to Tally
 // @route   POST /api/tally/sync-to-tally
 // @access  Private
-exports.syncToTally = asyncHandler(async (req, res, next) => {
+export const syncToTally = asyncHandler(async (req, res, next) => {
   const { entityType, entityId, companyId, priority = 'normal' } = req.body;
 
   // Validate input
@@ -111,7 +111,7 @@ exports.syncToTally = asyncHandler(async (req, res, next) => {
 // @desc    Sync entity from Tally
 // @route   POST /api/tally/sync-from-tally
 // @access  Private
-exports.syncFromTally = asyncHandler(async (req, res, next) => {
+export const syncFromTally = asyncHandler(async (req, res, next) => {
   const { entityType, tallyId, companyId } = req.body;
 
   // Validate input
@@ -144,7 +144,7 @@ exports.syncFromTally = asyncHandler(async (req, res, next) => {
 // @desc    Perform full sync for company
 // @route   POST /api/tally/full-sync/:companyId
 // @access  Private
-exports.performFullSync = asyncHandler(async (req, res, next) => {
+export const performFullSync = asyncHandler(async (req, res, next) => {
   const { companyId } = req.params;
 
   // Check company access
@@ -174,7 +174,7 @@ exports.performFullSync = asyncHandler(async (req, res, next) => {
 // @desc    Get sync conflicts
 // @route   GET /api/tally/conflicts/:companyId
 // @access  Private
-exports.getSyncConflicts = asyncHandler(async (req, res, next) => {
+export const getSyncConflicts = asyncHandler(async (req, res, next) => {
   const { companyId } = req.params;
   const { page = 1, limit = 10 } = req.query;
 
@@ -215,7 +215,7 @@ exports.getSyncConflicts = asyncHandler(async (req, res, next) => {
 // @desc    Resolve sync conflict
 // @route   POST /api/tally/resolve-conflict/:conflictId
 // @access  Private
-exports.resolveConflict = asyncHandler(async (req, res, next) => {
+export const resolveConflict = asyncHandler(async (req, res, next) => {
   const { conflictId } = req.params;
   const { resolutionStrategy, resolvedData } = req.body;
 
@@ -266,7 +266,7 @@ exports.resolveConflict = asyncHandler(async (req, res, next) => {
 // @desc    Get Tally connections
 // @route   GET /api/tally/connections/:companyId
 // @access  Private
-exports.getTallyConnections = asyncHandler(async (req, res, next) => {
+export const getTallyConnections = asyncHandler(async (req, res, next) => {
   const { companyId } = req.params;
 
   // Check company access
@@ -300,7 +300,7 @@ exports.getTallyConnections = asyncHandler(async (req, res, next) => {
 // @desc    Update Tally integration settings
 // @route   PUT /api/tally/settings/:companyId
 // @access  Private
-exports.updateTallySettings = asyncHandler(async (req, res, next) => {
+export const updateTallySettings = asyncHandler(async (req, res, next) => {
   const { companyId } = req.params;
   const { enabled, syncSettings } = req.body;
 
@@ -341,7 +341,7 @@ exports.updateTallySettings = asyncHandler(async (req, res, next) => {
 // @desc    Test Tally connection
 // @route   POST /api/tally/test-connection
 // @access  Private
-exports.testTallyConnection = asyncHandler(async (req, res, next) => {
+export const testTallyConnection = asyncHandler(async (req, res, next) => {
   const { host = 'localhost', port = 9000, method = 'http' } = req.body;
 
   try {
@@ -400,7 +400,7 @@ exports.testTallyConnection = asyncHandler(async (req, res, next) => {
 // @desc    Get sync logs
 // @route   GET /api/tally/sync-logs/:companyId
 // @access  Private
-exports.getSyncLogs = asyncHandler(async (req, res, next) => {
+export const getSyncLogs = asyncHandler(async (req, res, next) => {
   const { companyId } = req.params;
   const { page = 1, limit = 20, entityType, syncStatus } = req.query;
 

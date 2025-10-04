@@ -1,14 +1,19 @@
-const Razorpay = require('razorpay');
-const crypto = require('crypto');
-const QRCode = require('qrcode');
-const logger = require('../utils/logger');
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
+import QRCode from 'qrcode';
+import logger from '../utils/logger.js';
 
 class PaymentService {
   constructor() {
-    this.razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET
-    });
+    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+      this.razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET
+      });
+    } else {
+      logger.warn('Razorpay credentials not configured. Payment features will be disabled.');
+      this.razorpay = null;
+    }
   }
 
   // Create payment order
@@ -330,4 +335,4 @@ class PaymentService {
   }
 }
 
-module.exports = new PaymentService();
+export default new PaymentService();

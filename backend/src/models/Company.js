@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const CompanySchema = new mongoose.Schema({
   name: {
@@ -278,4 +278,4 @@ CompanySchema.methods.removeUser = function(userId) {
   return this.save();
 };
 
-module.exports = mongoose.model('Company', CompanySchema);
+export default mongoose.model('Company', CompanySchema);

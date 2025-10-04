@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const TallySyncSchema = new mongoose.Schema({
   company: {
@@ -237,4 +237,4 @@ TallySyncSchema.statics.getSyncStats = function(companyId, timeframe = '24h') {
   ]);
 };
 
-module.exports = mongoose.model('TallySync', TallySyncSchema);
+export default mongoose.model('TallySync', TallySyncSchema);

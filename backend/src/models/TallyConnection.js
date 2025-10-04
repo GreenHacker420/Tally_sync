@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const TallyConnectionSchema = new mongoose.Schema({
   company: {
@@ -264,4 +264,4 @@ TallyConnectionSchema.statics.cleanupStaleConnections = function() {
   );
 };
 
-module.exports = mongoose.model('TallyConnection', TallyConnectionSchema);
+export default mongoose.model('TallyConnection', TallyConnectionSchema);

@@ -1,21 +1,19 @@
-const express = require('express');
-const { protect, checkCompanyAccess } = require('../middleware/auth');
-const { body } = require('express-validator');
-const {
+import express from 'express';
+import { protect, checkCompanyAccess } from '../middleware/auth.js';
+import { body } from 'express-validator';
+import {
   sendEmail,
-  sendInvoiceNotification,
-  sendPaymentReminder,
-  sendBulkPaymentReminders,
+  sendBulkEmails,
+  getEmailTemplates,
+  createEmailTemplate,
   previewTemplate,
   getQueueStatus,
   getDeliveryStatus
-} = require('../controllers/emailController');
+} from '../controllers/emailController.mjs';  
 
 const router = express.Router();
 
 router.use(protect);
-
-// Validation rules
 const sendEmailValidation = [
   body('to')
     .isEmail()
@@ -107,4 +105,4 @@ router.get('/queue-status', checkCompanyAccess, getQueueStatus);
 // @access  Private
 router.get('/delivery-status/:messageId', checkCompanyAccess, getDeliveryStatus);
 
-module.exports = router;
+export default router;

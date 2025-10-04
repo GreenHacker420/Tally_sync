@@ -1,13 +1,13 @@
-const { validationResult } = require('express-validator');
-const logger = require('../utils/logger');
-const paymentService = require('../services/paymentService');
-const Voucher = require('../models/Voucher');
-const Party = require('../models/Party');
+import { validationResult } from 'express-validator';
+import logger from '../utils/logger.js';
+import paymentService from '../services/paymentService.js';
+import Voucher from '../models/Voucher.js';
+import Party from '../models/Party.js';
 
 // @desc    Create payment order
 // @route   POST /api/payments/orders
 // @access  Private
-exports.createOrder = async (req, res) => {
+export const createOrder = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -73,7 +73,7 @@ exports.createOrder = async (req, res) => {
 // @desc    Verify payment
 // @route   POST /api/payments/verify
 // @access  Private
-exports.verifyPayment = async (req, res) => {
+export const verifyPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
@@ -140,7 +140,7 @@ exports.verifyPayment = async (req, res) => {
 // @desc    Create payment link
 // @route   POST /api/payments/links
 // @access  Private
-exports.createPaymentLink = async (req, res) => {
+export const createPaymentLink = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -221,7 +221,7 @@ exports.createPaymentLink = async (req, res) => {
 // @desc    Generate UPI QR Code
 // @route   POST /api/payments/upi-qr
 // @access  Private
-exports.generateUPIQR = async (req, res) => {
+export const generateUPIQR = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -292,7 +292,7 @@ exports.generateUPIQR = async (req, res) => {
 // @desc    Process refund
 // @route   POST /api/payments/:paymentId/refund
 // @access  Private
-exports.processRefund = async (req, res) => {
+export const processRefund = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -343,7 +343,7 @@ exports.processRefund = async (req, res) => {
 // @desc    Handle payment webhooks
 // @route   POST /api/payments/webhook
 // @access  Public (but verified)
-exports.handleWebhook = async (req, res) => {
+export const handleWebhook = async (req, res) => {
   try {
     const signature = req.headers['x-razorpay-signature'];
     

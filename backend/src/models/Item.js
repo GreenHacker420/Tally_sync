@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const mongoosePaginate = require('mongoose-paginate-v2');
+import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 const ItemSchema = new mongoose.Schema({
   company: {
@@ -380,4 +380,4 @@ ItemSchema.statics.findLowStockItems = function(companyId) {
 // Add pagination plugin
 ItemSchema.plugin(mongoosePaginate);
 
-module.exports = mongoose.model('Item', ItemSchema);
+export default mongoose.model('Item', ItemSchema);

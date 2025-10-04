@@ -1,9 +1,14 @@
-const nodemailer = require('nodemailer');
-const fs = require('fs').promises;
-const path = require('path');
-const handlebars = require('handlebars');
-const logger = require('../utils/logger');
-const moment = require('moment');
+import nodemailer from 'nodemailer';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import handlebars from 'handlebars';
+import logger from '../utils/logger.js';
+import moment from 'moment';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 class EmailService {
   constructor() {
@@ -770,4 +775,4 @@ class EmailService {
   }
 }
 
-module.exports = new EmailService();
+export default new EmailService();

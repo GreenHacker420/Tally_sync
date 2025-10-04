@@ -1,16 +1,16 @@
-const Voucher = require('../models/Voucher');
-const Party = require('../models/Party');
-const Item = require('../models/Item');
-const Company = require('../models/Company');
-const { validationResult } = require('express-validator');
-const logger = require('../utils/logger');
-const PDFService = require('../services/pdfService');
-const moment = require('moment');
+import Voucher from '../models/Voucher.js';
+import Party from '../models/Party.js';
+import Item from '../models/Item.js';
+import Company from '../models/Company.js';
+import { validationResult } from 'express-validator';
+import logger from '../utils/logger.js';
+import PDFService from '../services/pdfService.js';
+import moment from 'moment';
 
 // @desc    Get all vouchers
 // @route   GET /api/vouchers
 // @access  Private
-exports.getVouchers = async (req, res) => {
+export const getVouchers = async (req, res) => {
   try {
     const {
       page = 1,
@@ -72,7 +72,7 @@ exports.getVouchers = async (req, res) => {
 // @desc    Get single voucher
 // @route   GET /api/vouchers/:id
 // @access  Private
-exports.getVoucher = async (req, res) => {
+export const getVoucher = async (req, res) => {
   try {
     const voucher = await Voucher.findOne({
       _id: req.params.id,
@@ -106,7 +106,7 @@ exports.getVoucher = async (req, res) => {
 // @desc    Create voucher
 // @route   POST /api/vouchers
 // @access  Private
-exports.createVoucher = async (req, res) => {
+export const createVoucher = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -169,7 +169,7 @@ exports.createVoucher = async (req, res) => {
 // @desc    Update voucher
 // @route   PUT /api/vouchers/:id
 // @access  Private
-exports.updateVoucher = async (req, res) => {
+export const updateVoucher = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -251,7 +251,7 @@ exports.updateVoucher = async (req, res) => {
 // @desc    Delete voucher
 // @route   DELETE /api/vouchers/:id
 // @access  Private
-exports.deleteVoucher = async (req, res) => {
+export const deleteVoucher = async (req, res) => {
   try {
     const voucher = await Voucher.findOne({
       _id: req.params.id,
@@ -300,7 +300,7 @@ exports.deleteVoucher = async (req, res) => {
 // @desc    Generate PDF for voucher
 // @route   GET /api/vouchers/:id/pdf
 // @access  Private
-exports.generateVoucherPDF = async (req, res) => {
+export const generateVoucherPDF = async (req, res) => {
   try {
     const voucher = await Voucher.findOne({
       _id: req.params.id,

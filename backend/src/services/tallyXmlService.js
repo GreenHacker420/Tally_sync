@@ -1,8 +1,8 @@
-const { XMLParser, XMLBuilder } = require('fast-xml-parser');
-const xml2js = require('xml2js');
-const xmlbuilder2 = require('xmlbuilder2');
-const logger = require('../utils/logger');
-const winston = require('winston');
+import { XMLParser, XMLBuilder } from 'fast-xml-parser';
+import xml2js from 'xml2js';
+import xmlbuilder2 from 'xmlbuilder2';
+import logger from '../utils/logger.js';
+import winston from 'winston';
 
 class TallyXmlService {
   constructor() {
@@ -445,4 +445,4 @@ class TallyXmlService {
   }
 }
 
-module.exports = new TallyXmlService();
+export default new TallyXmlService();

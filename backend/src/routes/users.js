@@ -1,8 +1,8 @@
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const { protect, authorize } = require('../middleware/auth');
-const logger = require('../utils/logger');
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import User from '../models/User.js';
+import { protect, authorize } from '../middleware/auth.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -274,4 +274,4 @@ router.delete('/:id', authorize('admin', 'superadmin'), async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

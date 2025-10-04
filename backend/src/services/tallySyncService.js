@@ -1,13 +1,13 @@
-const winston = require('winston');
-const cron = require('node-cron');
-const TallySync = require('../models/TallySync');
-const TallyConnection = require('../models/TallyConnection');
-const tallyCommunicationService = require('./tallyCommunicationService');
-const tallyXmlService = require('./tallyXmlService');
-const Voucher = require('../models/Voucher');
-const Item = require('../models/Item');
-const Party = require('../models/Party');
-const Company = require('../models/Company');
+import winston from 'winston';
+import cron from 'node-cron';
+import TallySync from '../models/TallySync.js';
+import TallyConnection from '../models/TallyConnection.js';
+import tallyCommunicationService from './tallyCommunicationService.js';
+import tallyXmlService from './tallyXmlService.js';
+import Voucher from '../models/Voucher.js';
+import Item from '../models/Item.js';
+import Party from '../models/Party.js';
+import Company from '../models/Company.js';
 
 class TallySyncService {
   constructor() {
@@ -610,4 +610,4 @@ class TallySyncService {
   }
 }
 
-module.exports = new TallySyncService();
+export default new TallySyncService();

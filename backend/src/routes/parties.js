@@ -1,7 +1,7 @@
-const express = require('express');
-const { protect, checkCompanyAccess } = require('../middleware/auth');
-const { body } = require('express-validator');
-const {
+import express from 'express';
+import { protect, checkCompanyAccess } from '../middleware/auth.js';
+import { body } from 'express-validator';
+import {
   getParties,
   getParty,
   createParty,
@@ -9,7 +9,7 @@ const {
   deleteParty,
   getPartyBalance,
   getOutstandingParties
-} = require('../controllers/partyController');
+} from '../controllers/partyController.js';
 
 const router = express.Router();
 
@@ -110,4 +110,4 @@ router.delete('/:id', checkCompanyAccess, deleteParty);
 // @access  Private
 router.get('/:id/balance', checkCompanyAccess, getPartyBalance);
 
-module.exports = router;
+export default router;

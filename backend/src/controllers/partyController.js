@@ -1,12 +1,12 @@
-const Party = require('../models/Party');
-const Company = require('../models/Company');
-const { validationResult } = require('express-validator');
-const logger = require('../utils/logger');
+import Party from '../models/Party.js';
+import Company from '../models/Company.js';
+import { validationResult } from 'express-validator';
+import logger from '../utils/logger.js';
 
 // @desc    Get all parties
 // @route   GET /api/parties
 // @access  Private
-exports.getParties = async (req, res) => {
+export const getParties = async (req, res) => { 
   try {
     const {
       page = 1,
@@ -65,7 +65,7 @@ exports.getParties = async (req, res) => {
 // @desc    Get single party
 // @route   GET /api/parties/:id
 // @access  Private
-exports.getParty = async (req, res) => {
+export const getParty = async (req, res) => {
   try {
     const party = await Party.findOne({
       _id: req.params.id,
@@ -97,7 +97,7 @@ exports.getParty = async (req, res) => {
 // @desc    Create party
 // @route   POST /api/parties
 // @access  Private
-exports.createParty = async (req, res) => {
+export const createParty = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -167,7 +167,7 @@ exports.createParty = async (req, res) => {
 // @desc    Update party
 // @route   PUT /api/parties/:id
 // @access  Private
-exports.updateParty = async (req, res) => {
+export const updateParty = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -253,7 +253,7 @@ exports.updateParty = async (req, res) => {
 // @desc    Delete party
 // @route   DELETE /api/parties/:id
 // @access  Private
-exports.deleteParty = async (req, res) => {
+export const deleteParty = async (req, res) => { 
   try {
     const party = await Party.findOne({
       _id: req.params.id,
@@ -296,7 +296,7 @@ exports.deleteParty = async (req, res) => {
 // @desc    Get party balance summary
 // @route   GET /api/parties/:id/balance
 // @access  Private
-exports.getPartyBalance = async (req, res) => {
+export const getPartyBalance = async (req, res) => {
   try {
     const party = await Party.findOne({
       _id: req.params.id,
@@ -332,7 +332,7 @@ exports.getPartyBalance = async (req, res) => {
 // @desc    Get parties with outstanding balances
 // @route   GET /api/parties/outstanding
 // @access  Private
-exports.getOutstandingParties = async (req, res) => {
+export const getOutstandingParties = async (req, res) => {
   try {
     const { type } = req.query;
     

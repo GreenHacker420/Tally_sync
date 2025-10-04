@@ -1,9 +1,9 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const logger = require('../utils/logger');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import logger from '../utils/logger.js';
 
 // Protect routes - verify JWT token
-const protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   try {
     let token;
 
@@ -66,7 +66,7 @@ const protect = async (req, res, next) => {
 };
 
 // Grant access to specific roles
-const authorize = (...roles) => {
+export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
@@ -87,7 +87,7 @@ const authorize = (...roles) => {
 };
 
 // Check company access
-const checkCompanyAccess = async (req, res, next) => {
+export const checkCompanyAccess = async (req, res, next) => {
   try {
     const companyId = req.params.companyId || req.body.companyId || req.query.companyId;
     
@@ -122,7 +122,7 @@ const checkCompanyAccess = async (req, res, next) => {
 };
 
 // Optional auth - doesn't fail if no token
-const optionalAuth = async (req, res, next) => {
+export const optionalAuth = async (req, res, next) => {
   try {
     let token;
 
@@ -150,9 +150,3 @@ const optionalAuth = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  protect,
-  authorize,
-  checkCompanyAccess,
-  optionalAuth
-};

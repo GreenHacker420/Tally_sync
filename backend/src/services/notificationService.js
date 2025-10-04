@@ -1,8 +1,8 @@
-const twilio = require('twilio');
-const nodemailer = require('nodemailer');
-const logger = require('../utils/logger');
-const moment = require('moment');
-const EmailService = require('./emailService');
+import twilio from 'twilio';
+import nodemailer from 'nodemailer';
+import logger from '../utils/logger.js';
+import moment from 'moment';
+import EmailService from './emailService.js';
 
 class NotificationService {
   constructor() {
@@ -432,4 +432,4 @@ class NotificationService {
   }
 }
 
-module.exports = new NotificationService();
+export default new NotificationService();

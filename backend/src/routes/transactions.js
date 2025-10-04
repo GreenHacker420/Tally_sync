@@ -1,13 +1,13 @@
-const express = require('express');
-const { protect, checkCompanyAccess } = require('../middleware/auth');
-const { body } = require('express-validator');
-const {
+import express from 'express';
+import { protect, checkCompanyAccess } from '../middleware/auth.js';
+import { body } from 'express-validator';
+import {
   getVouchers,
   getVoucher,
   createVoucher,
   updateVoucher,
   deleteVoucher
-} = require('../controllers/voucherController');
+} from '../controllers/voucherController.js';
 
 const router = express.Router();
 
@@ -73,4 +73,4 @@ router.put('/:id', checkCompanyAccess, transactionValidation, updateVoucher);
 // @access  Private
 router.delete('/:id', checkCompanyAccess, deleteVoucher);
 
-module.exports = router;
+export default router;

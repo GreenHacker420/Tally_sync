@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const mongoosePaginate = require('mongoose-paginate-v2');
+import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 const PartySchema = new mongoose.Schema({
   company: {
@@ -296,4 +296,4 @@ PartySchema.statics.findWithOutstanding = function(companyId) {
 // Add pagination plugin
 PartySchema.plugin(mongoosePaginate);
 
-module.exports = mongoose.model('Party', PartySchema);
+export default mongoose.model('Party', PartySchema);

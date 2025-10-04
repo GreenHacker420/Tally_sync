@@ -1,5 +1,5 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   getSyncStatus,
   syncToTally,
   syncFromTally,
@@ -10,11 +10,11 @@ const {
   updateTallySettings,
   testTallyConnection,
   getSyncLogs
-} = require('../controllers/tallyController');
+} from '../controllers/tallyController.js';
 
-const { protect, authorize } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validation');
-const { body, param, query } = require('express-validator');
+import { protect, authorize } from '../middleware/auth.js';
+import validateRequest from '../middleware/validation.js';
+import { body, param, query } from 'express-validator';
 
 const router = express.Router();
 
@@ -185,4 +185,4 @@ router.get('/sync-logs/:companyId', [
     .withMessage('Invalid sync status')
 ], validateRequest, getSyncLogs);
 
-module.exports = router;
+export default router;

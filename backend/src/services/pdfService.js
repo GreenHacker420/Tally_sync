@@ -1,7 +1,7 @@
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
-const path = require('path');
-const moment = require('moment');
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
+import moment from 'moment';
 
 class PDFService {
   static async generateVoucherPDF(voucher) {
@@ -303,4 +303,4 @@ class PDFService {
   }
 }
 
-module.exports = PDFService;
+export default PDFService;

@@ -1,8 +1,8 @@
-const WebSocket = require('ws');
-const winston = require('winston');
-const jwt = require('jsonwebtoken');
-const TallyConnection = require('../models/TallyConnection');
-const tallyCommunicationService = require('./tallyCommunicationService');
+import { WebSocketServer } from 'ws';
+import winston from 'winston';
+import jwt from 'jsonwebtoken';
+import TallyConnection from '../models/TallyConnection.js';
+import tallyCommunicationService from './tallyCommunicationService.js';
 
 class TallyWebSocketService {
   constructor() {
@@ -37,7 +37,7 @@ class TallyWebSocketService {
    * @param {string} path - WebSocket path
    */
   initialize(server, path = '/tally-agent') {
-    this.wss = new WebSocket.Server({
+    this.wss = new WebSocketServer({
       server,
       path,
       verifyClient: this.verifyClient.bind(this)
@@ -531,4 +531,4 @@ class TallyWebSocketService {
   }
 }
 
-module.exports = new TallyWebSocketService();
+export default new TallyWebSocketService();

@@ -1,14 +1,72 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
-const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const Company = require('../models/Company');
-const { protect, optionalAuth } = require('../middleware/auth');
-const logger = require('../utils/logger');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { body, validationResult } from 'express-validator';
+import User from '../models/User.js';
+import Company from '../models/Company.js';
+import { protect, optionalAuth } from '../middleware/auth.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - phone
+ *               - password
+ *               - companyName
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 example: john@example.com
+ *               phone:
+ *                 type: string
+ *                 example: +919876543210
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *               companyName:
+ *                 type: string
+ *                 example: Acme Corporation
+ *               companyDetails:
+ *                 type: object
+ *                 properties:
+ *                   address:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   state:
+ *                     type: string
+ *                   pincode:
+ *                     type: string
+ *                   businessType:
+ *                     type: string
+ *                   industry:
+ *                     type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       400:
+ *         description: Validation error or user already exists
+ *       500:
+ *         description: Server error
+ */
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
@@ -506,4 +564,4 @@ router.put('/reset-password/:resettoken', [
   }
 });
 
-module.exports = router;
+export default router;

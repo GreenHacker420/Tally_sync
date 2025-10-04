@@ -159,3 +159,12 @@ coverage/
 # Local development
 .local/
 .cache/
+
+
+backend_status_report.md
+BACKEND_STATUS_REPORT.md
+BACKEND_COMPLETION_SUMMARY.md
+
+backend/fix-imports.js
+backend/ES6_CONVERSION_PLAN.md
+backend/ES6_CONVERSION.md

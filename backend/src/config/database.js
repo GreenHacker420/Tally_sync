@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const logger = require('../utils/logger');
+import mongoose from 'mongoose';
+import logger from '../utils/logger.js';
 
-const connectDB = async () => {
+export const connectDB = async () => {
   try {
     // Check if we're in development mode without MongoDB
     if (process.env.NODE_ENV === 'development' && process.env.SKIP_MONGODB === 'true') {
@@ -62,7 +62,7 @@ const connectDB = async () => {
   }
 };
 
-const disconnectDB = async () => {
+export const disconnectDB = async () => {
   try {
     await mongoose.connection.close();
     logger.info('Database disconnected successfully');
@@ -71,7 +71,3 @@ const disconnectDB = async () => {
   }
 };
 
-module.exports = {
-  connectDB,
-  disconnectDB
-};
