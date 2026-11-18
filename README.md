@@ -11,7 +11,7 @@
 > | A **complete, production-ready product**: billing + stock + GST app, **web, mobile and WhatsApp**, a ready **Tally desktop synchroniser**, multi-company and multi-branch, owner approvals and audit trail | **ShopControl** (enterprise edition available) |
 > | A **custom build**: Tally integration with your ERP/e-commerce/CRM, dashboards, mobile or web apps, WhatsApp automation | Contact the author |
 >
-> **Enterprise, full-app and custom-build enquiries:** harsh@greenhacker.tech or [@GreenHacker420](https://github.com/GreenHacker420).
+> **ShopControl is the production-grade, enterprise edition: it runs for client businesses today.** For details, a demo, the full app (web, mobile, WhatsApp) or a custom build, contact **harsh@greenhacker.in** · [LinkedIn: Harsh Hirawat](https://www.linkedin.com/in/harshhirawat) · [@GreenHacker420](https://github.com/GreenHacker420).
 >
 > The original README is kept below for reference only.
 
@@ -521,7 +521,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Getting Help
 - **GitHub Issues**: Report bugs or request features
 - **Documentation**: Check the `/docs` directory for detailed guides
-- **Email**: harsh@greenhacker.tech (enterprise ShopControl, Tally integration and custom builds)
+- **Email**: harsh@greenhacker.in (enterprise ShopControl, Tally integration and custom builds)
+- **LinkedIn**: [Harsh Hirawat](https://www.linkedin.com/in/harshhirawat)
 - **Maintained library**: [tally-sync-ts](https://github.com/GreenHacker420/tally-sync-ts)
 
 ### Community
