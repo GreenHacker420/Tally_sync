@@ -1,3 +1,22 @@
+> [!WARNING]
+> ## This repository is a prototype and is no longer maintained
+>
+> **FinSync360 was an early proof-of-concept** of a cloud ERP with Tally connectivity. It was built around the older **Tally ERP 9** XML interface, it is **not supported any more**, it does not track **TallyPrime**, and it has not been hardened for production use (idempotent posting, crash recovery, GST edge cases, security review). Please do not run it against a live company file.
+>
+> ### Use the maintained replacement
+>
+> | You need | Use |
+> |---|---|
+> | A **TypeScript/Node.js library** to sync TallyPrime / Tally ERP 9: idempotent GST invoice posting with read-back verification, company/ledger discovery, circuit breaker, durable job queue, SQLite mirror, GSTR-1 / GSTR-3B / MSME 43B(h) reports | **[`tally-sync-ts`](https://github.com/GreenHacker420/tally-sync-ts)** on npm: `npm install tally-sync-ts` |
+> | A **complete, production-ready product**: billing + stock + GST app, **web, mobile and WhatsApp**, a ready **Tally desktop synchroniser**, multi-company and multi-branch, owner approvals and audit trail | **ShopControl** (enterprise edition available) |
+> | A **custom build**: Tally integration with your ERP/e-commerce/CRM, dashboards, mobile or web apps, WhatsApp automation | Contact the author |
+>
+> **Enterprise, full-app and custom-build enquiries:** harsh@greenhacker.tech or [@GreenHacker420](https://github.com/GreenHacker420).
+>
+> The original README is kept below for reference only.
+
+---
+
 # FinSync360 - Comprehensive Cloud-Based ERP System
 
 [![Hacktoberfest 2025](https://img.shields.io/badge/Hacktoberfest-2025-orange.svg)](https://hacktoberfest.com/)
@@ -502,7 +521,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Getting Help
 - **GitHub Issues**: Report bugs or request features
 - **Documentation**: Check the `/docs` directory for detailed guides
-- **Email**: harsh@greenhacker.tech
+- **Email**: harsh@greenhacker.tech (enterprise ShopControl, Tally integration and custom builds)
+- **Maintained library**: [tally-sync-ts](https://github.com/GreenHacker420/tally-sync-ts)
 
 ### Community
 - Star ⭐ this repository if you find it helpful
